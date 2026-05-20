@@ -1,0 +1,621 @@
+2026-05-19 10:33:28 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 10:33:28 - TestCore - INFO - --- Старт проверки Шага 1 ---
+2026-05-19 10:33:28 - TestCore - INFO - Глобальный конфиг успешно прочитан!
+2026-05-19 10:33:28 - TestCore - INFO - --- Проверка Шага 1 завершена ---
+2026-05-19 10:43:54 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 10:43:54 - TestStep2 - INFO - --- Старт проверки Шага 2 ---
+2026-05-19 10:43:54 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 10:43:54 - DBClient - INFO - Чтение SQL-файла: jobs/test_report/query.sql
+2026-05-19 10:43:54 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 10:43:54 - TestStep2 - INFO - Данные успешно получены в DataFrame:
+2026-05-19 10:43:54 - TestStep2 - INFO - --- Проверка Шага 2 завершена ---
+2026-05-19 10:51:09 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 10:51:09 - TestStep3 - INFO - --- Старт проверки Шага 3 ---
+2026-05-19 10:51:09 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 10:51:09 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 10:51:09 - TestStep3 - CRITICAL - Ошибка во время теста: No module named 'xlsxwriter'
+Traceback (most recent call last):
+  File "C:\Users\Boris\work\py\universal_reporter\test_step3.py", line 32, in main
+    output_file = build_excel_workbook(sheets_data, job_config)
+  File "C:\Users\Boris\work\py\universal_reporter\src\excel\writer.py", line 37, in build_excel_workbook
+    with pd.ExcelWriter(file_path, engine="xlsxwriter") as writer:
+         ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Boris\work\py\universal_reporter\.venv\Lib\site-packages\pandas\io\excel\_xlsxwriter.py", line 197, in __init__
+    from xlsxwriter import Workbook
+ModuleNotFoundError: No module named 'xlsxwriter'
+2026-05-19 10:51:09 - TestStep3 - INFO - --- Проверка Шага 3 завершена ---
+2026-05-19 10:52:08 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 10:52:08 - TestStep3 - INFO - --- Старт проверки Шага 3 ---
+2026-05-19 10:52:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 10:52:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 10:52:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 10:52:08 - TestStep3 - INFO - Успех! Файл собран и лежит тут: C:\Users\Boris\work\py\universal_reporter\output\Менеджеры_2026_05_19.xlsx
+2026-05-19 10:52:08 - TestStep3 - INFO - Проверка защиты: передаем пустой DataFrame...
+2026-05-19 10:52:08 - Validator - ERROR - Критическая ошибка валидации: Датасет пуст, генерация отчета прервана!
+2026-05-19 10:52:08 - TestStep3 - INFO - Защита валидатора отработала штатно: Критическая ошибка валидации: Датасет пуст, генерация отчета прервана!
+2026-05-19 10:52:08 - TestStep3 - INFO - --- Проверка Шага 3 завершена ---
+2026-05-19 11:01:40 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 11:01:40 - TestStep4 - INFO - --- Старт проверки Шага 4 ---
+2026-05-19 11:01:40 - TestStep4 - INFO - Используем для теста файл: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 11:01:40 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 11:01:40 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: C:\Users\Boris\work\py\universal_reporter\final_archive_test\Менеджеры_2026_05_19.xlsx
+2026-05-19 11:01:40 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 11:01:40 - TestStep4 - INFO - Проверка распределения завершена успешно.
+2026-05-19 11:01:40 - TestStep4 - INFO - --- Проверка Шага 4 завершена ---
+2026-05-19 11:12:55 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 11:12:55 - TestStep5 - INFO - --- Старт проверки Шага 5 ---
+2026-05-19 11:15:33 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 11:15:33 - TestStep5 - INFO - --- Старт проверки Шага 5 ---
+2026-05-19 11:15:33 - TestStep5 - INFO - Тестируем реакцию фабрики на новые каналы (все в состоянии enabled=False)...
+2026-05-19 11:15:33 - TestStep5 - INFO - Фабрика успешно обработала структуру без падений.
+2026-05-19 11:15:33 - TestStep5 - INFO - --- Проверка Шага 5 завершена ---
+2026-05-19 11:25:39 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 11:25:39 - TestStep6 - INFO - --- Старт проверки Шага 6 ---
+2026-05-19 11:25:39 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 11:25:39 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 11:25:39 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 11:25:39 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 11:25:39 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 11:25:39 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 11:25:39 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 11:25:39 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 11:25:39 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 11:25:39 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 11:25:39 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 11:25:39 - TestStep6 - INFO - Тест защиты: запускаем несуществующий отчет...
+2026-05-19 11:25:39 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: ghost_report <===
+2026-05-19 11:25:39 - Monitoring.Alerts - CRITICAL - 🚨 [REPORTER ALERT]
+Конфигурационный файл отчета jobs\ghost_report\config.yaml не найден.
+2026-05-19 11:25:39 - Monitoring.Alerts - WARNING - Алертинг: Сетевой алерт не отправлен (не настроены yandex_bot_token или chat_id в main.toml)
+2026-05-19 11:25:39 - TestStep6 - INFO - Проверяем содержимое базы данных run_history.db:
+2026-05-19 11:25:39 - TestStep6 - INFO - --- Проверка Шага 6 завершена ---
+2026-05-19 11:42:50 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 11:47:09 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 11:57:41 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 11:57:41 - TestStep6 - INFO - --- Старт проверки Шага 6 ---
+2026-05-19 11:57:41 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 11:57:41 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 11:57:41 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 11:57:41 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 11:57:41 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 11:57:41 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 11:57:41 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 11:57:41 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 11:57:41 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 11:57:41 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 11:57:41 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 11:57:41 - TestStep6 - INFO - Тест защиты: запускаем несуществующий отчет...
+2026-05-19 11:57:41 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: ghost_report <===
+2026-05-19 11:57:41 - Monitoring.Alerts - CRITICAL - 🚨 [REPORTER ALERT]
+Конфигурационный файл отчета jobs\ghost_report\config.yaml не найден.
+2026-05-19 11:57:41 - Monitoring.Alerts - WARNING - Алертинг: Сетевой алерт не отправлен (не настроены yandex_bot_token или chat_id в main.toml)
+2026-05-19 11:57:41 - TestStep6 - INFO - Проверяем содержимое базы данных run_history.db:
+2026-05-19 11:57:41 - TestStep6 - INFO - --- Проверка Шага 6 завершена ---
+2026-05-19 12:02:32 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 12:02:32 - Core.Scheduler - INFO - Инициализация внутреннего планировщика задач...
+2026-05-19 12:02:32 - Core.Scheduler - INFO - Отчет 'test_report' загружен (только ручной запуск, расписание не задано).
+2026-05-19 12:02:32 - Core.Scheduler - WARNING - Нет активных задач по расписанию. Планировщику нечего выполнять.
+2026-05-19 12:04:24 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 12:06:53 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 12:06:53 - Core.Scheduler - INFO - Инициализация внутреннего планировщика задач...
+2026-05-19 12:06:53 - Core.Scheduler - INFO - Отчет 'test_report' загружен (только ручной запуск, расписание не задано).
+2026-05-19 12:06:53 - Core.Scheduler - WARNING - Нет активных задач по расписанию. Планировщику нечего выполнять.
+2026-05-19 12:09:08 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 12:09:08 - Core.Scheduler - INFO - Инициализация внутреннего планировщика задач...
+2026-05-19 12:09:08 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-05-19 12:09:08 - Core.Scheduler - INFO - 📅 Задача 'test_report' успешно поставлена в расписание: [interval:1]
+2026-05-19 12:09:08 - Core.Scheduler - INFO - Планировщик успешно запущен. Активных задач по расписанию: 1
+2026-05-19 12:09:08 - apscheduler.scheduler - INFO - Added job "Тестовый отчет по менеджерам" to job store "default"
+2026-05-19 12:09:08 - apscheduler.scheduler - INFO - Scheduler started
+2026-05-19 12:10:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:10:08 MSK)" (scheduled at 2026-05-19 12:10:08.271849+03:00)
+2026-05-19 12:10:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:10:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:10:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:10:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:10:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:10:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:10:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:10:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:10:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:10:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:10:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:10:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:11:08 MSK)" executed successfully
+2026-05-19 12:11:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:12:08 MSK)" (scheduled at 2026-05-19 12:11:08.271849+03:00)
+2026-05-19 12:11:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:11:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:11:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:11:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:11:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:11:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:11:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:11:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:11:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:11:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:11:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:11:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:12:08 MSK)" executed successfully
+2026-05-19 12:12:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:13:08 MSK)" (scheduled at 2026-05-19 12:12:08.271849+03:00)
+2026-05-19 12:12:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:12:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:12:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:12:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:12:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:12:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:12:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:12:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:12:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:12:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:12:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:12:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:13:08 MSK)" executed successfully
+2026-05-19 12:13:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:14:08 MSK)" (scheduled at 2026-05-19 12:13:08.271849+03:00)
+2026-05-19 12:13:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:13:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:13:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:13:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:13:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:13:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:13:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:13:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:13:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:13:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:13:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:13:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:14:08 MSK)" executed successfully
+2026-05-19 12:14:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:15:08 MSK)" (scheduled at 2026-05-19 12:14:08.271849+03:00)
+2026-05-19 12:14:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:14:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:14:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:14:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:14:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:14:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:14:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:14:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:14:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:14:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:14:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:14:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:15:08 MSK)" executed successfully
+2026-05-19 12:15:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:16:08 MSK)" (scheduled at 2026-05-19 12:15:08.271849+03:00)
+2026-05-19 12:15:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:15:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:15:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:15:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:15:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:15:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:15:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:15:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:15:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:15:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:15:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:15:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:16:08 MSK)" executed successfully
+2026-05-19 12:16:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:17:08 MSK)" (scheduled at 2026-05-19 12:16:08.271849+03:00)
+2026-05-19 12:16:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:16:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:16:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:16:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:16:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:16:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:16:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:16:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:16:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:16:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:16:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:16:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:17:08 MSK)" executed successfully
+2026-05-19 12:17:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:18:08 MSK)" (scheduled at 2026-05-19 12:17:08.271849+03:00)
+2026-05-19 12:17:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:17:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:17:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:17:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:17:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:17:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:17:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:17:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:17:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:17:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:17:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:17:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:18:08 MSK)" executed successfully
+2026-05-19 12:18:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:19:08 MSK)" (scheduled at 2026-05-19 12:18:08.271849+03:00)
+2026-05-19 12:18:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:18:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:18:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:18:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:18:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:18:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:18:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:18:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:18:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:18:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:18:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:18:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:19:08 MSK)" executed successfully
+2026-05-19 12:19:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:20:08 MSK)" (scheduled at 2026-05-19 12:19:08.271849+03:00)
+2026-05-19 12:19:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:19:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:19:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:19:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:19:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:19:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:19:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:19:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:19:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:19:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:19:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:19:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:20:08 MSK)" executed successfully
+2026-05-19 12:20:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:21:08 MSK)" (scheduled at 2026-05-19 12:20:08.271849+03:00)
+2026-05-19 12:20:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:20:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:20:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:20:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:20:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:20:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:20:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:20:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:20:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:20:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:20:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:20:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:21:08 MSK)" executed successfully
+2026-05-19 12:21:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:22:08 MSK)" (scheduled at 2026-05-19 12:21:08.271849+03:00)
+2026-05-19 12:21:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:21:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:21:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:21:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:21:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:21:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:21:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:21:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:21:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:21:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:21:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:21:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:22:08 MSK)" executed successfully
+2026-05-19 12:22:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:23:08 MSK)" (scheduled at 2026-05-19 12:22:08.271849+03:00)
+2026-05-19 12:22:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:22:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:22:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:22:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:22:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:22:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:22:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:22:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:22:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:22:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:22:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:22:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:23:08 MSK)" executed successfully
+2026-05-19 12:23:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:24:08 MSK)" (scheduled at 2026-05-19 12:23:08.271849+03:00)
+2026-05-19 12:23:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:23:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:23:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:23:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:23:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:23:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:23:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:23:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:23:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:23:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:23:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:23:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:24:08 MSK)" executed successfully
+2026-05-19 12:24:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:25:08 MSK)" (scheduled at 2026-05-19 12:24:08.271849+03:00)
+2026-05-19 12:24:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:24:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:24:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:24:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:24:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:24:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:24:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:24:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:24:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:24:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:24:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:24:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:25:08 MSK)" executed successfully
+2026-05-19 12:25:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:26:08 MSK)" (scheduled at 2026-05-19 12:25:08.271849+03:00)
+2026-05-19 12:25:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:25:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:25:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:25:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:25:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:25:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:25:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:25:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:25:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:25:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:25:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:25:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:26:08 MSK)" executed successfully
+2026-05-19 12:26:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:27:08 MSK)" (scheduled at 2026-05-19 12:26:08.271849+03:00)
+2026-05-19 12:26:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:26:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:26:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:26:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:26:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:26:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:26:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:26:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:26:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:26:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:26:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:26:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:27:08 MSK)" executed successfully
+2026-05-19 12:27:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:28:08 MSK)" (scheduled at 2026-05-19 12:27:08.271849+03:00)
+2026-05-19 12:27:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:27:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:27:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:27:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:27:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:27:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:27:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:27:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:27:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:27:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:27:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:27:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:28:08 MSK)" executed successfully
+2026-05-19 12:28:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:29:08 MSK)" (scheduled at 2026-05-19 12:28:08.271849+03:00)
+2026-05-19 12:28:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:28:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:28:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:28:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:28:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:28:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:28:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:28:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:28:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:28:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:28:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:28:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:29:08 MSK)" executed successfully
+2026-05-19 12:29:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:30:08 MSK)" (scheduled at 2026-05-19 12:29:08.271849+03:00)
+2026-05-19 12:29:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:29:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:29:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:29:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:29:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:29:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:29:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:29:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:29:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:29:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:29:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:29:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:30:08 MSK)" executed successfully
+2026-05-19 12:29:13 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 12:30:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:31:08 MSK)" (scheduled at 2026-05-19 12:30:08.271849+03:00)
+2026-05-19 12:30:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:30:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:30:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:30:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:30:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:30:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:30:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:30:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:30:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:30:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:30:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:30:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:31:08 MSK)" executed successfully
+2026-05-19 12:31:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:32:08 MSK)" (scheduled at 2026-05-19 12:31:08.271849+03:00)
+2026-05-19 12:31:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:31:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:31:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:31:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:31:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:31:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:31:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:31:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:31:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:31:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:31:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:31:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:32:08 MSK)" executed successfully
+2026-05-19 12:32:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:33:08 MSK)" (scheduled at 2026-05-19 12:32:08.271849+03:00)
+2026-05-19 12:32:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:32:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:32:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:32:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:32:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:32:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:32:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:32:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:32:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:32:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:32:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:32:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:33:08 MSK)" executed successfully
+2026-05-19 12:33:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:34:08 MSK)" (scheduled at 2026-05-19 12:33:08.271849+03:00)
+2026-05-19 12:33:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:33:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:33:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:33:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:33:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:33:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:33:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:33:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:33:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:33:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:33:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:33:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:34:08 MSK)" executed successfully
+2026-05-19 12:34:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:35:08 MSK)" (scheduled at 2026-05-19 12:34:08.271849+03:00)
+2026-05-19 12:34:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:34:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:34:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:34:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:34:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:34:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:34:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:34:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:34:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:34:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:34:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:34:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:35:08 MSK)" executed successfully
+2026-05-19 12:35:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:36:08 MSK)" (scheduled at 2026-05-19 12:35:08.271849+03:00)
+2026-05-19 12:35:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:35:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:35:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:35:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:35:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:35:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:35:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:35:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:35:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:35:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:35:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:35:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:36:08 MSK)" executed successfully
+2026-05-19 12:35:21 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 12:35:39 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 12:36:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:37:08 MSK)" (scheduled at 2026-05-19 12:36:08.271849+03:00)
+2026-05-19 12:36:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:36:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:36:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:36:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:36:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:36:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:36:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:36:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:36:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:36:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:36:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:36:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:37:08 MSK)" executed successfully
+2026-05-19 12:36:55 - root - INFO - Логирование успешно инициализировано.
+2026-05-19 12:37:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:38:08 MSK)" (scheduled at 2026-05-19 12:37:08.271849+03:00)
+2026-05-19 12:37:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:37:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:37:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:37:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:37:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:37:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:37:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:37:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:37:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:37:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:37:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:37:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:38:08 MSK)" executed successfully
+2026-05-19 12:38:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:39:08 MSK)" (scheduled at 2026-05-19 12:38:08.271849+03:00)
+2026-05-19 12:38:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:38:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:38:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:38:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:38:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:38:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:38:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:38:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:38:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:38:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:38:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:38:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:39:08 MSK)" executed successfully
+2026-05-19 12:39:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:40:08 MSK)" (scheduled at 2026-05-19 12:39:08.271849+03:00)
+2026-05-19 12:39:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:39:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:39:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:39:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:39:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:39:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:39:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:39:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:39:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:39:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:39:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:39:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:40:08 MSK)" executed successfully
+2026-05-19 12:40:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:41:08 MSK)" (scheduled at 2026-05-19 12:40:08.271849+03:00)
+2026-05-19 12:40:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:40:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:40:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:40:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:40:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:40:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:40:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:40:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:40:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:40:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:40:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:40:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:41:08 MSK)" executed successfully
+2026-05-19 12:41:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:42:08 MSK)" (scheduled at 2026-05-19 12:41:08.271849+03:00)
+2026-05-19 12:41:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:41:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:41:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:41:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:41:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:41:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:41:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:41:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:41:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:41:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:41:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:41:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:42:08 MSK)" executed successfully
+2026-05-19 12:42:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:43:08 MSK)" (scheduled at 2026-05-19 12:42:08.271849+03:00)
+2026-05-19 12:42:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:42:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:42:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:42:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:42:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:42:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:42:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:42:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:42:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:42:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:42:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:42:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:43:08 MSK)" executed successfully
+2026-05-19 12:43:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:44:08 MSK)" (scheduled at 2026-05-19 12:43:08.271849+03:00)
+2026-05-19 12:43:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:43:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:43:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:43:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:43:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:43:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:43:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:43:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:43:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:43:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:43:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:43:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:44:08 MSK)" executed successfully
+2026-05-19 12:44:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:45:08 MSK)" (scheduled at 2026-05-19 12:44:08.271849+03:00)
+2026-05-19 12:44:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:44:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:44:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:44:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:44:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:44:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:44:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:44:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:44:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:44:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:44:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:44:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:45:08 MSK)" executed successfully
+2026-05-19 12:45:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:46:08 MSK)" (scheduled at 2026-05-19 12:45:08.271849+03:00)
+2026-05-19 12:45:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:45:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:45:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:45:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:45:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:45:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:45:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:45:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:45:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:45:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:45:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:45:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:46:08 MSK)" executed successfully
+2026-05-19 12:46:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:47:08 MSK)" (scheduled at 2026-05-19 12:46:08.271849+03:00)
+2026-05-19 12:46:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:46:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:46:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:46:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:46:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:46:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:46:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:46:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:46:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:46:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:46:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:46:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:47:08 MSK)" executed successfully
+2026-05-19 12:47:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:48:08 MSK)" (scheduled at 2026-05-19 12:47:08.271849+03:00)
+2026-05-19 12:47:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:47:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:47:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:47:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:47:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:47:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:47:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:47:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:47:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:47:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:47:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:47:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:48:08 MSK)" executed successfully
+2026-05-19 12:48:08 - apscheduler.executors.default - INFO - Running job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:49:08 MSK)" (scheduled at 2026-05-19 12:48:08.271849+03:00)
+2026-05-19 12:48:08 - Core.Orchestrator - INFO - ===> Накатываем выполнение отчета: test_report <===
+2026-05-19 12:48:08 - DBClient - INFO - Используется тестовая база данных SQLite в памяти (In-Memory).
+2026-05-19 12:48:08 - DBClient - INFO - Чтение SQL-файла: jobs\test_report\query.sql
+2026-05-19 12:48:08 - DBClient - INFO - Запрос успешно выполнен. Получено строк: 2
+2026-05-19 12:48:08 - Validator - INFO - Валидация данных пройдена успешно.
+2026-05-19 12:48:08 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:48:08 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:48:08 - Delivery.Factory - INFO - Запуск отправки через канал: 'local'
+2026-05-19 12:48:08 - Delivery.Local - INFO - Файл успешно скопирован в локальную папку: D:\Archive\Reports\Менеджеры_2026_05_19.xlsx
+2026-05-19 12:48:08 - Delivery.Factory - INFO - Провайдер 'local' успешно отработал.
+2026-05-19 12:48:08 - Core.Orchestrator - INFO - ===> Отчет 'test_report' успешно выполнен! <===
+2026-05-19 12:48:08 - apscheduler.executors.default - INFO - Job "Тестовый отчет по менеджерам (trigger: interval[0:01:00], next run at: 2026-05-19 12:49:08 MSK)" executed successfully
+2026-05-19 12:49:08 - Core.Scheduler - INFO - Планировщик остановлен пользователем или службой.

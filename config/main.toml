@@ -1,0 +1,30 @@
+[app]
+environment = "development"
+debug = true
+
+[database]
+dialect = "sqlite"
+host = "localhost"
+port = 5432
+username = "postgres"
+password = "super_secret_password"
+database = "company_db"
+
+[delivery.nextcloud]
+url = "https://cloud.yourcompany.com"
+username = "report_bot"
+password = "app-specific-password-here"
+
+[delivery.mail]
+smtp_server = "smtp.yourcompany.com"
+smtp_port = 587
+use_tls = true
+sender = "reporter@yourcompany.com"
+password = "email_password"
+
+[delivery.yandex_messenger]
+bot_token = "AgAAAAA..." # Токен вашего бота для отправки ОТЧЕТОВ пользователям
+
+[monitoring]
+yandex_chat_id = "admin_chat_id_here" # Сюда будут сыпаться АЛЕРТЫ в случае падения системы
+yandex_bot_token = "bot_token_here"

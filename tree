@@ -1,0 +1,14 @@
+universal_reporter/
+│
+├── config/
+│   ├── main.toml            # Глобальные доступы (БД, почта, Nextcloud и т.д.)
+│   └── logging.toml         # Настройки вывода логов
+│
+├── src/
+│   ├── __init__.py
+│   └── utils/
+│       ├── __init__.py
+│       └── config_loader.py # Скрипт для чтения конфигураций
+│
+├── test_step1.py            # Наш временный файл для проверки в PyCharm
+└── requirements.txt         # Зависимости проекта
