@@ -1,0 +1,54 @@
+name: "Тестовый отчет по сотрудникам"
+enabled: true
+
+schedule: "interval:1" # <--- Запуск каждую минуту для теста
+# 1. Периодические запуски (interval)
+#schedule: "interval:1"         # Каждую 1 минуту (ваш тестовый вариант)
+#schedule: "interval:15"        # Каждые 15 минут
+#schedule: "interval:120"       # Каждые 2 часа (120 минут)
+
+# 2. Запуск каждый день в точное время (cron по часам и минутам)
+#schedule: "cron:14:30"         # Каждый день ровно в 14:30
+#schedule: "cron:09:00"         # Каждый день ровно в 09:00 утра
+#schedule: "cron:00:00"         # Каждую полночь
+
+# 3. Запуск по дням недели в точное время (cron:день_недели:час:минута)
+#schedule: "cron:mon-fri:09:00" # С понедельника по пятницу в 09:00 утра
+#schedule: "cron:sat,sun:12:00" # В субботу и воскресенье в полдень
+#schedule: "cron:mon:01:00"     # Только каждый понедельник в 01:00 ночи
+
+# Настройки проверки данных
+validation:
+  allow_empty: false         # Пустые данные запрещены
+  on_empty_action: "alert"   # Если пусто — паниковать (прервать выполнение)
+
+# Структура Excel-файла
+workbook:
+  filename_template: "сотрудники{YYYY}_{MM}_{DD}.xlsx"
+  sheets:
+    - name: "сотрудники"   # Имя первой вкладки
+      sql_file: "person.sql"
+      columns:                # Расширенные имена колонок
+        id: "№ П/П"
+        #manager_name: "ФИО Сотрудника"
+        #amount: "Выручка, ₽"
+        #report_generated_at: "Дата расчета"
+        
+# НОВЫЙ БЛОК: Дистрибуция отчета
+delivery:
+  local:
+    enabled: true
+    target_path: "D:\\Archive\\Reports" # Замените на любой реальный локальный путь для теста
+  mail:
+    enabled: false # Включите (true) и настройте доступы в config/main.toml, если хотите проверить отправку писем
+    to:
+      - "your_test_email@company.com"
+    subject: "📊 Свежая аналитика по менеджерам"
+    body: "Приветствую! Отчет сформирован автоматически. Файл во вложении."      
+  nextcloud:
+    enabled: false # Включите при наличии тестового стенда
+    remote_path: "Reports/Sales"
+  yandex_messenger:
+    enabled: false # Включите при наличии рабочего токена бота
+    chat_id: "0/0/..." 
+    caption: "📊 Ловите свежие данные по эффективности!"    

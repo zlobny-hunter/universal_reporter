@@ -11,7 +11,7 @@ def main():
     logger.info("--- Старт проверки Шага 3 ---")
 
     # 1. Эмулируем чтение YAML-конфига отчета
-    with open("jobs/test_report/config.yaml", "r", encoding="utf-8") as f:
+    with open("jobs/person_report/config.yaml", "r", encoding="utf-8") as f:
         job_config = yaml.safe_load(f)
 
     # 2. Создаем тестовые данные (как будто получили из БД на Шаге 2)

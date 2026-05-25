@@ -11,7 +11,7 @@ def main():
 
     # 1. Загружаем глобальный конфиг (для SMTP) и конфиг отчета
     global_config = load_main_config()
-    with open("jobs/test_report/config.yaml", "r", encoding="utf-8") as f:
+    with open("jobs/person_report/config.yaml", "r", encoding="utf-8") as f:
         job_config = yaml.safe_load(f)
 
     # 2. Нам нужен файл для отправки. 

@@ -19,7 +19,7 @@ def main():
         db = DBClient(config["database"])
         
         # 3. Пытаемся прочесть и выполнить наш тестовый SQL-файл
-        sql_file_path = "jobs/test_report/query.sql"
+        sql_file_path = "jobs/person_report/query.sql"
         
         # Передадим кастомные параметры (проверим работу шаблонизатора)
         custom_params = {"current_date": "2026-05-19"} 

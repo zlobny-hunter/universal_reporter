@@ -1,14 +1,14 @@
 [app]
 environment = "development"
-debug = true
+debug = false
 
 [database]
-dialect = "sqlite"
-host = "localhost"
+dialect = "postgres"
+host = "172.16.132.151"
 port = 5432
-username = "postgres"
-password = "super_secret_password"
-database = "company_db"
+user = "nbb"
+password = "spargo_26"
+database = "nbb"
 
 [delivery.nextcloud]
 url = "https://cloud.yourcompany.com"
@@ -28,3 +28,5 @@ bot_token = "AgAAAAA..." # Токен вашего бота для отправ�
 [monitoring]
 yandex_chat_id = "admin_chat_id_here" # Сюда будут сыпаться АЛЕРТЫ в случае падения системы
 yandex_bot_token = "bot_token_here"
+
+

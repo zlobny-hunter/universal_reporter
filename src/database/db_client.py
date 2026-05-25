@@ -1,3 +1,4 @@
+import os
 import logging
 from datetime import datetime
 import pandas as pd
@@ -6,13 +7,32 @@ from sqlalchemy import create_engine, text
 logger = logging.getLogger("DBClient")
 
 class DBClient:
-    def __init__(self, db_config: dict):
+    def __init__(self, config: dict):
         """
-        Инициализация подключения к БД на основе переданного конфига.
+        Инициализация подключения к БД. На вход подается секция [database] из config.toml.
         """
-        self.config = db_config
-        self.engine = self._create_engine_instance()
+        self.dialect = config.get("dialect", "sqlite").lower() # по умолчанию пусть будет sqlite
+        self.host = config.get("host", "localhost")
+        self.user = config.get("user", "")
+        self.password = config.get("password", "")
+        self.database = config.get("database", "")
+        
+        # Парсинг порта с защитой от строки 'None'
+        raw_port = config.get("port")
+        if raw_port is None or str(raw_port).lower() == "none" or str(raw_port).strip() == "":
+            self.port = 5432 if self.dialect in ["postgres", "postgresql"] else 3306
+        else:
+            self.port = int(raw_port)
 
+        # Сборка URL движка
+        if self.dialect in ["postgres", "postgresql"]:
+            url = f"postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
+        else:
+            url = f"sqlite:///{self.database}"
+
+        from sqlalchemy import create_engine
+        self.engine = create_engine(url)
+        
     def _create_engine_instance(self):
         """Формирует строку подключения и создает движок SQLAlchemy."""
         dialect = self.config.get("dialect", "sqlite")

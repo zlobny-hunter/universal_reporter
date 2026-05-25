@@ -72,14 +72,20 @@ def build_excel_workbook(sheets_data: dict, job_config: dict, output_dir: str = 
             # Перезаписываем шапку с нашими стилями
             for col_num, value in enumerate(df.columns.values):
                 worksheet.write(0, col_num, value, header_format)
-            
+
             # Автоматическая подгонка ширины колонок по длине контента
             for i, col in enumerate(df.columns):
-                # Вычисляем максимальную длину значения в этой колонке
+                    # Безопасно вычисляем максимальную длину контента в колонке.
+                    # Если значение NaN/None, считаем его длину как 0, иначе приводим к строке.
+                max_content_len = df[col].apply(
+                        lambda x: len(str(x)) if pd.notna(x) and x is not None else 0
+                    ).max()
+
                 max_len = max(
-                    df[col].astype(str).map(len).max(),
-                    len(str(col))
-                ) + 3 # Добавляем небольшой отступ
+                        max_content_len,
+                        len(str(col))
+                    ) + 3  # Добавляем небольшой отступ
+
                 worksheet.set_column(i, i, max_len)
                 
     logger.info(f"Excel-файл успешно сохранен: {file_path}")
