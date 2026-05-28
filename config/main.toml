@@ -2,13 +2,20 @@
 environment = "development"
 debug = false
 
+[ssh]
+host = "172.16.132.211"       # IP-адрес SSH-сервера (часто совпадает с сервером БД)
+port = 22
+username = "boris"         # Логин для подключения к серверу по SSH
+password = "borisboris"     # Пароль от SSH (если вход по паролю)
+# pkey = "~/.ssh/id_rsa"      # ИЛИ путь к приватному ключу, если вход по ключу
+
 [database]
 dialect = "postgres"
-host = "172.16.132.151"
+host = "srv-dtemiasllop1-pg01.mosgorzdrav.local"
 port = 5432
-user = "nbb"
-password = "spargo_26"
-database = "nbb"
+user = "llo"
+password = "llo"
+database = "llo"
 
 [delivery.nextcloud]
 url = "https://cloud.yourcompany.com"

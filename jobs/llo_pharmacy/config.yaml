@@ -1,4 +1,4 @@
-name: "Тестовый отчет по сотрудникам"
+name: "Тестовый отчет по аптекам"
 enabled: true
 
 schedule: "interval:1" # <--- Запуск каждую минуту для теста
@@ -24,9 +24,9 @@ validation:
 
 # Структура Excel-файла
 workbook:
-  filename_template: "сотрудники{YYYY}_{MM}_{DD}.xlsx"
+  filename_template: "Аптеки_{YYYY}_{MM}_{DD}.xlsx"
   sheets:
-    - name: "сотрудники"   # Имя первой вкладки
+    - name: "Аптеки"   # Имя первой вкладки
       sql_file: "pharmacy.sql"
       columns:                # Расширенные имена колонок
         id: "№ П/П"
