@@ -33,7 +33,7 @@ def get_all_jobs() -> list:
     return [d for d in os.listdir(jobs_dir) if os.path.isdir(os.path.join(jobs_dir, d))]
 
 
-def log_job_state(job_name: str, status: str, error_msg: str = ""):
+def log_job_state(job_name: str, status: str, error_msg: str = "", job_title: str = ""):
     """Записывает результат выполнения отчета в системную БД SQLite для UI."""
     target_db_path = os.path.join(os.getcwd(), "data", "job_status.db")
     os.makedirs(os.path.dirname(target_db_path), exist_ok=True)
@@ -44,25 +44,23 @@ def log_job_state(job_name: str, status: str, error_msg: str = ""):
         cursor.execute("""
                        CREATE TABLE IF NOT EXISTS job_runs
                        (
-                           id
-                           INTEGER
-                           PRIMARY
-                           KEY
-                           AUTOINCREMENT,
-                           job_name
-                           TEXT,
-                           run_time
-                           TEXT,
-                           status
-                           TEXT,
-                           error_message
-                           TEXT
+                           id INTEGER PRIMARY KEY AUTOINCREMENT,
+                           job_name TEXT,
+                           job_title TEXT,  -- <--- ДОБАВИЛИ КОЛОНКУ
+                           run_time TEXT,
+                           status TEXT,
+                           error_message TEXT
                        )
                        """)
+        # На случай, если таблица уже существовала без этого поля, добавим его программно
+        try:
+            cursor.execute("ALTER TABLE job_runs ADD COLUMN job_title TEXT")
+        except sqlite3.OperationalError:
+            pass  # Колонка уже существует, всё ок
 
         cursor.execute(
-            "INSERT INTO job_runs (job_name, run_time, status, error_message) VALUES (?, ?, ?, ?)",
-            (job_name, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), status, error_msg)
+            "INSERT INTO job_runs (job_name, job_title, run_time, status, error_message) VALUES (?, ?, ?, ?, ?)",
+            (job_name, job_title, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), status, error_msg)
         )
         conn.commit()
     except Exception as e:
@@ -294,12 +292,38 @@ def run_job(job_name: str, external_params: dict = None):
         # 5. Сборка Excel файла (вынесено за пределы блока туннеля, данные уже в памяти)
         excel_file_path = build_excel_workbook(sheets_data, job_config)
 
-        log_job_state(job_name, "Успешно")
+        # УНИВЕРСАЛЬНЫЙ ПОИСК НАЗВАНИЯ ОТЧЕТА
+        try:
+            # Сначала ищем title или name внутри секции report
+            # Если не нашли — ищем title или name на самом верхнем уровне конфига
+            # Если и там пусто — берем техническое имя папки (job_name)
+            job_title = (
+                    job_config.get("report", {}).get("title") or
+                    job_config.get("report", {}).get("name") or
+                    job_config.get("title") or
+                    job_config.get("name") or
+                    job_name
+            )
+        except Exception:
+            job_title = job_name
+
+        log_job_state(job_name, "Успешно", job_title=job_title)
         logger.info(f"===> Отчет '{job_name}' успешно сгенерирован: {excel_file_path} <===")
         return excel_file_path
 
     except Exception as err:
         error_msg = str(err)
         logger.error(f"Критический сбой конвейера '{job_name}': {error_msg}")
-        log_job_state(job_name, "Ошибка", error_msg)
+        # Защита на случай, если упало ДО того, как прочитался конфиг
+        try:
+            j_title = (
+                    job_config.get("report", {}).get("title") or
+                    job_config.get("report", {}).get("name") or
+                    job_config.get("title") or
+                    job_config.get("name") or
+                    job_name
+            )
+        except NameError:
+            j_title = job_name
+        log_job_state(job_name, "Ошибка", j_title, error_msg)
         raise err

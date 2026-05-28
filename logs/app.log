@@ -976,3 +976,98 @@ LINE 1: ...elect * from staff.person where birthday between  :date_star...
 2026-05-28 10:18:50 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Аптеки_2026_05_28.xlsx
 2026-05-28 10:18:50 - Core.Orchestrator - INFO - ===> Отчет 'llo_pharmacy' успешно сгенерирован: C:\Users\Boris\work\py\universal_reporter\output\Аптеки_2026_05_28.xlsx <===
 2026-05-28 10:18:50 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 10:47:21 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 10:49:49 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 10:49:49 - Core.Orchestrator - INFO - ===> Запуск конвейера для отчета: llo_pharmacy <===
+2026-05-28 10:49:49 - Core.Orchestrator - INFO - Статический отчет запущен без параметров.
+2026-05-28 10:49:49 - Core.Orchestrator - INFO - [SSH] Инициализация туннеля к 172.16.132.211...
+2026-05-28 10:49:49 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.2p1)
+2026-05-28 10:49:49 - paramiko.transport - INFO - Authentication (password) successful!
+2026-05-28 10:49:49 - Core.Orchestrator - INFO - [SSH] Туннель успешно открыт на локальном порту: 4858
+2026-05-28 10:49:51 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Аптеки_2026_05_28.xlsx
+2026-05-28 10:49:54 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Аптеки_2026_05_28.xlsx
+2026-05-28 10:49:54 - Core.Orchestrator - INFO - ===> Отчет 'llo_pharmacy' успешно сгенерирован: C:\Users\Boris\work\py\universal_reporter\output\Аптеки_2026_05_28.xlsx <===
+2026-05-28 10:49:54 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 10:50:54 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 10:50:54 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 10:50:54 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 10:52:19 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 10:52:19 - Core.Orchestrator - INFO - ===> Запуск конвейера для отчета: llo_pharmacy <===
+2026-05-28 10:52:19 - Core.Orchestrator - INFO - Статический отчет запущен без параметров.
+2026-05-28 10:52:19 - Core.Orchestrator - INFO - [SSH] Инициализация туннеля к 172.16.132.211...
+2026-05-28 10:52:19 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.2p1)
+2026-05-28 10:52:19 - paramiko.transport - INFO - Authentication (password) successful!
+2026-05-28 10:52:19 - Core.Orchestrator - INFO - [SSH] Туннель успешно открыт на локальном порту: 4922
+2026-05-28 10:52:22 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Аптеки_2026_05_28.xlsx
+2026-05-28 10:52:24 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Аптеки_2026_05_28.xlsx
+2026-05-28 10:52:24 - Core.Orchestrator - INFO - ===> Отчет 'llo_pharmacy' успешно сгенерирован: C:\Users\Boris\work\py\universal_reporter\output\Аптеки_2026_05_28.xlsx <===
+2026-05-28 10:52:24 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:00:27 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:00:34 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:00:34 - Core.Orchestrator - INFO - ===> Запуск конвейера для отчета: llo_pharmacy <===
+2026-05-28 11:00:34 - Core.Orchestrator - INFO - Статический отчет запущен без параметров.
+2026-05-28 11:00:34 - Core.Orchestrator - INFO - [SSH] Инициализация туннеля к 172.16.132.211...
+2026-05-28 11:00:34 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.2p1)
+2026-05-28 11:00:34 - paramiko.transport - INFO - Authentication (password) successful!
+2026-05-28 11:00:34 - Core.Orchestrator - INFO - [SSH] Туннель успешно открыт на локальном порту: 5070
+2026-05-28 11:00:37 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Аптеки_2026_05_28.xlsx
+2026-05-28 11:00:39 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Аптеки_2026_05_28.xlsx
+2026-05-28 11:00:39 - Core.Orchestrator - INFO - ===> Отчет 'llo_pharmacy' успешно сгенерирован: C:\Users\Boris\work\py\universal_reporter\output\Аптеки_2026_05_28.xlsx <===
+2026-05-28 11:00:39 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:01:00 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:01:00 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:01:00 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:01:01 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:01:07 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:01:07 - Core.Orchestrator - INFO - ===> Запуск конвейера для отчета: llo_pharmacy <===
+2026-05-28 11:01:07 - Core.Orchestrator - INFO - Статический отчет запущен без параметров.
+2026-05-28 11:01:07 - Core.Orchestrator - INFO - [SSH] Инициализация туннеля к 172.16.132.211...
+2026-05-28 11:01:07 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.2p1)
+2026-05-28 11:01:07 - paramiko.transport - INFO - Authentication (password) successful!
+2026-05-28 11:01:07 - Core.Orchestrator - INFO - [SSH] Туннель успешно открыт на локальном порту: 5101
+2026-05-28 11:01:09 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Аптеки_2026_05_28.xlsx
+2026-05-28 11:01:11 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Аптеки_2026_05_28.xlsx
+2026-05-28 11:01:11 - Core.Orchestrator - INFO - ===> Отчет 'llo_pharmacy' успешно сгенерирован: C:\Users\Boris\work\py\universal_reporter\output\Аптеки_2026_05_28.xlsx <===
+2026-05-28 11:01:11 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:02:50 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:02:54 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:02:54 - Core.Orchestrator - INFO - ===> Запуск конвейера для отчета: llo_pharmacy <===
+2026-05-28 11:02:54 - Core.Orchestrator - INFO - Статический отчет запущен без параметров.
+2026-05-28 11:02:54 - Core.Orchestrator - INFO - [SSH] Инициализация туннеля к 172.16.132.211...
+2026-05-28 11:02:54 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.2p1)
+2026-05-28 11:02:54 - paramiko.transport - INFO - Authentication (password) successful!
+2026-05-28 11:02:54 - Core.Orchestrator - INFO - [SSH] Туннель успешно открыт на локальном порту: 5138
+2026-05-28 11:02:56 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Аптеки_2026_05_28.xlsx
+2026-05-28 11:02:59 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Аптеки_2026_05_28.xlsx
+2026-05-28 11:02:59 - Core.Orchestrator - INFO - ===> Отчет 'llo_pharmacy' успешно сгенерирован: C:\Users\Boris\work\py\universal_reporter\output\Аптеки_2026_05_28.xlsx <===
+2026-05-28 11:02:59 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:06:08 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:06:08 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:06:08 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:06:08 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:06:08 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:09:38 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:17:08 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:17:12 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:17:12 - Core.Orchestrator - INFO - ===> Запуск конвейера для отчета: llo_pharmacy <===
+2026-05-28 11:17:12 - Core.Orchestrator - INFO - Статический отчет запущен без параметров.
+2026-05-28 11:17:12 - Core.Orchestrator - INFO - [SSH] Инициализация туннеля к 172.16.132.211...
+2026-05-28 11:17:12 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.2p1)
+2026-05-28 11:17:12 - paramiko.transport - INFO - Authentication (password) successful!
+2026-05-28 11:17:12 - Core.Orchestrator - INFO - [SSH] Туннель успешно открыт на локальном порту: 5527
+2026-05-28 11:17:15 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Аптеки_2026_05_28.xlsx
+2026-05-28 11:17:17 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Аптеки_2026_05_28.xlsx
+2026-05-28 11:17:17 - Core.Orchestrator - INFO - ===> Отчет 'llo_pharmacy' успешно сгенерирован: C:\Users\Boris\work\py\universal_reporter\output\Аптеки_2026_05_28.xlsx <===
+2026-05-28 11:17:17 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:29:04 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:29:08 - root - INFO - Логирование успешно инициализировано.
+2026-05-28 11:29:08 - Core.Orchestrator - INFO - ===> Запуск конвейера для отчета: llo_pharmacy <===
+2026-05-28 11:29:08 - Core.Orchestrator - INFO - Статический отчет запущен без параметров.
+2026-05-28 11:29:08 - Core.Orchestrator - INFO - [SSH] Инициализация туннеля к 172.16.132.211...
+2026-05-28 11:29:08 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.2p1)
+2026-05-28 11:29:08 - paramiko.transport - INFO - Authentication (password) successful!
+2026-05-28 11:29:08 - Core.Orchestrator - INFO - [SSH] Туннель успешно открыт на локальном порту: 5768
+2026-05-28 11:29:11 - ExcelWriter - INFO - Начало сборки Excel-файла: output\Аптеки_2026_05_28.xlsx
+2026-05-28 11:29:13 - ExcelWriter - INFO - Excel-файл успешно сохранен: output\Аптеки_2026_05_28.xlsx
+2026-05-28 11:29:13 - Core.Orchestrator - INFO - ===> Отчет 'llo_pharmacy' успешно сгенерирован: C:\Users\Boris\work\py\universal_reporter\output\Аптеки_2026_05_28.xlsx <===
+2026-05-28 11:29:13 - root - INFO - Логирование успешно инициализировано.

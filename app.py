@@ -97,6 +97,7 @@ def load_statuses_from_db():
         conn = sqlite3.connect(DB_PATH)
         query = """
             SELECT job_name as 'Отчет', 
+                   job_title as 'Полное имя отчета',
                    run_time as 'Последний запуск', 
                    status as 'Статус', 
                    error_message as 'Описание ошибки'
