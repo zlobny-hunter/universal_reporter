@@ -131,7 +131,8 @@ else:
 
     # Применяем стили к колонке "Статус" и выводим интерактивную таблицу
     styled_df = df_statuses.style.map(color_status, subset=["Статус"])
-    st.dataframe(styled_df, use_container_width=True, hide_index=True)
+    #st.dataframe(styled_df, use_container_width=True, hide_index=True)
+    st.dataframe(styled_df, width="stretch", hide_index=True)
 
 st.markdown("---")
 
