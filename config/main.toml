@@ -3,7 +3,7 @@ environment = "development"
 debug = false
 
 [ssh]
-host = "172.16.132.211"       # IP-адрес SSH-сервера (часто совпадает с сервером БД)
+host = "192.168.220.217"       # IP-адрес SSH-сервера (часто совпадает с сервером БД)
 port = 22
 username = "boris"         # Логин для подключения к серверу по SSH
 password = "borisboris"     # Пароль от SSH (если вход по паролю)
