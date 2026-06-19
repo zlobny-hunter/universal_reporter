@@ -1,329 +1,324 @@
 import os
-import yaml
-import logging
+import sys
+import toml
+import yaml  # Для чтения индивидуальных config.yaml отчетов
 import sqlite3
-from datetime import datetime, timedelta
-import sqlalchemy as sa
-from sshtunnel import SSHTunnelForwarder
-import pandas as pd
-import tomllib
+import psycopg2
+from datetime import datetime
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+# === КОСТЫЛЬ СОВМЕСТИМОСТИ ДЛЯ PARAMIKO & SSHTUNNEL ===
 import paramiko
-# Заплатка для совместимости новых версий paramiko и старых sshtunnel
+
 if not hasattr(paramiko, 'DSSKey'):
-    class DummyDSSKey:
-        pass
+    class DummyDSSKey: pass
     paramiko.DSSKey = DummyDSSKey
 
-# Предполагаем, что ваши внутренние модули называются так.
-# Если пути к db_client или writer отличаются — скорректируйте эти импорты.
-from src.database.db_client import DBClient
-from src.excel.writer import build_excel_workbook
+from sshtunnel import SSHTunnelForwarder
 
-logger = logging.getLogger("Core.Orchestrator")
+# 1. Получаем абсолютный путь к папке, где физически лежит этот main.py
+_current_dir = os.path.dirname(os.path.abspath(__file__))
 
-# Глобальный путь к лог-базе состояний (чтобы Streamlit видел историю запусков)
-DB_STATUS_PATH = "data/job_status.db"
+# 2. Если main.py лежит в src, корень — на уровень выше. Иначе — это и есть корень.
+if os.path.basename(_current_dir) == "src":
+    BASE_DIR = os.path.dirname(_current_dir)
+else:
+    BASE_DIR = _current_dir
 
+# 3. Абсолютные пути к ключевым точкам системы
+MAIN_CONFIG_PATH = os.path.join(BASE_DIR, "config", "main.toml")
+JOBS_DIR = os.path.join(BASE_DIR, "jobs")
 
-def get_all_jobs() -> list:
-    """Возвращает список всех папок-отчетов из директории jobs."""
-    jobs_dir = "jobs"
-    if not os.path.exists(jobs_dir):
-        return []
-    return [d for d in os.listdir(jobs_dir) if os.path.isdir(os.path.join(jobs_dir, d))]
-
-
-def log_job_state(job_name: str, status: str, error_msg: str = "", job_title: str = ""):
-    """Записывает результат выполнения отчета в системную БД SQLite для UI."""
-    target_db_path = os.path.join(os.getcwd(), "data", "job_status.db")
-    os.makedirs(os.path.dirname(target_db_path), exist_ok=True)
-
-    conn = sqlite3.connect(target_db_path)
-    cursor = conn.cursor()
-    try:
-        cursor.execute("""
-                       CREATE TABLE IF NOT EXISTS job_runs
-                       (
-                           id INTEGER PRIMARY KEY AUTOINCREMENT,
-                           job_name TEXT,
-                           job_title TEXT,  -- <--- ДОБАВИЛИ КОЛОНКУ
-                           run_time TEXT,
-                           status TEXT,
-                           error_message TEXT
-                       )
-                       """)
-        # На случай, если таблица уже существовала без этого поля, добавим его программно
-        try:
-            cursor.execute("ALTER TABLE job_runs ADD COLUMN job_title TEXT")
-        except sqlite3.OperationalError:
-            pass  # Колонка уже существует, всё ок
-
-        cursor.execute(
-            "INSERT INTO job_runs (job_name, job_title, run_time, status, error_message) VALUES (?, ?, ?, ?, ?)",
-            (job_name, job_title, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), status, error_msg)
-        )
-        conn.commit()
-    except Exception as e:
-        print(f"[ERROR log_job_state] Ошибка записи в SQLite: {e}")
-    finally:
-        conn.close()
+print(f"[DEBUG PATHS] Корень проекта определен как: {BASE_DIR}")
+print(f"[DEBUG PATHS] Центральный конфиг ищется по: {MAIN_CONFIG_PATH}")
+print(f"[DEBUG PATHS] Папка с отчетами находится по: {JOBS_DIR}")
 
 
-def calculate_default_params(param_declaration: dict) -> dict:
-    """Вычисляет дефолтные значения параметров для автоматического запуска по шедулеру."""
-    computed = {}
-    for p_name, p_info in param_declaration.items():
-        p_type = p_info.get("type")
-        default_val = p_info.get("default")
+def get_connection_for_job(job_name):
+    """
+    Универсальная фабрика подключений.
+    Динамически ищет конфигурацию БД в main.toml по ключу из секции [jobs].
+    Никакого хардкода структуры секций или типов.
+    """
+    if not os.path.exists(MAIN_CONFIG_PATH):
+        raise FileNotFoundError(f"Критическая ошибка: Главный конфиг не найден: {MAIN_CONFIG_PATH}")
 
-        if default_val == "None" or default_val is None:
-            computed[p_name] = None
-            continue
+    config = toml.load(MAIN_CONFIG_PATH)
+    jobs_section = config.get("jobs", {})
+    db_profile_key = jobs_section.get(job_name)
 
-        if p_type == "date":
-            if default_val == "today":
-                computed[p_name] = datetime.now().strftime("%Y-%m-%d 23:59:59")
-            elif default_val == "minus_7_days":
-                minus_7 = datetime.now() - timedelta(days=7)
-                computed[p_name] = minus_7.strftime("%Y-%m-%d 00:00:00")
-            else:
-                computed[p_name] = default_val
+    if not db_profile_key:
+        raise ValueError(f"Отчет '{job_name}' не зарегистрирован в секции [jobs] в main.toml")
 
-        elif p_type == "int_list":
-            if isinstance(default_val, list):
-                clean_list = []
-                for x in default_val:
-                    if x is not None and str(x).strip() != "" and str(x).lower() != "none":
-                        clean_list.append(int(x))
-                computed[p_name] = tuple(clean_list) if clean_list else None
-            else:
-                if str(default_val).lower() != "none" and str(default_val).strip() != "":
-                    computed[p_name] = (int(default_val),)
-                else:
-                    computed[p_name] = None
+    # --- ДИНАМИЧЕСКИЙ ПОИСК ПРОФИЛЯ ПО КЛЮЧУ ---
+    # Поддерживает как "database.postgres_prod", так и вложенные структуры любой глубины
+    db_config = config
+    for part in db_profile_key.split('.'):
+        if isinstance(db_config, dict):
+            db_config = db_config.get(part)
         else:
-            computed[p_name] = default_val
+            db_config = None
+            break
 
-    return computed
+    if not db_config or not isinstance(db_config, dict):
+        raise ValueError(f"Конфигурация подключения [{db_profile_key}] не найдена или некорректна в main.toml")
+    # --------------------------------------------
 
+    # Определяем тип СУБД строго из параметров самого профиля в TOML
+    db_type = db_config.get("type")
 
-def sanitize_data(data, key_context=""):
-    """Отладочная версия очистки данных."""
-    if isinstance(data, dict):
-        return {k: sanitize_data(v, key_context=f"{key_context}.{k}" if key_context else k) for k, v in data.items()}
-    elif isinstance(data, list):
-        cleaned = []
-        for i, v in enumerate(data):
-            res = sanitize_data(v, key_context=f"{key_context}[{i}]")
-            if res is not None and str(res).lower() != "none":
-                cleaned.append(res)
-        return cleaned
-    elif isinstance(data, str):
-        val_stripped = data.strip()
-        if val_stripped.lower() == "none" or val_stripped == "":
-            return None
-        if val_stripped.isdigit():
+    # 1. Режим СУБД: SQLite
+    if db_type == "sqlite":
+        db_path = db_config.get("database")
+        print(f"[ENGINE] Подключение к локальной СУБД SQLite: {db_path}")
+        return sqlite3.connect(db_path), None
+
+    # 2. Режим СУБД: PostgreSQL
+    if db_type == "postgres":
+        if db_config.get("use_ssh", False):
+            print(f"[ENGINE] Инициализация SSH-туннеля для профиля [{db_profile_key}]...")
             try:
-                return int(val_stripped)
-            except ValueError as e:
-                raise ValueError(f"Ошибка конвертации в число в поле '{key_context}': значение='{data}'") from e
-    return data
+                tunnel_kwargs = {
+                    "ssh_address_or_host": (db_config.get("ssh_host"), int(db_config.get("ssh_port", 22))),
+                    "ssh_username": db_config.get("ssh_user"),
+                    "remote_bind_address": (db_config.get("host"), int(db_config.get("port", 5432)))
+                }
+
+                # Загрузка учетных данных SSH из TOML
+                if db_config.get("ssh_password"):
+                    tunnel_kwargs["ssh_password"] = db_config.get("ssh_password")
+                elif db_config.get("ssh_pkey"):
+                    clean_key_path = os.path.normpath(db_config.get("ssh_pkey"))
+                    if os.path.exists(clean_key_path):
+                        try:
+                            tunnel_kwargs["ssh_pkey"] = paramiko.RSAKey.from_private_key_file(clean_key_path)
+                        except Exception:
+                            tunnel_kwargs["ssh_pkey"] = paramiko.Ed25519Key.from_private_key_file(clean_key_path)
+                    else:
+                        raise FileNotFoundError(f"Файл SSH-ключа не найден: {clean_key_path}")
+
+                tunnel = SSHTunnelForwarder(**tunnel_kwargs)
+                tunnel.start()
+                print(f"[ENGINE] SSH-туннель успешно поднят на локальном порту: {tunnel.local_bind_port}")
+
+                # Подключение к Postgres через локальную точку туннеля
+                conn = psycopg2.connect(
+                    host='127.0.0.1',
+                    port=tunnel.local_bind_port,
+                    user=db_config.get("user"),
+                    password=db_config.get("password"),
+                    database=db_config.get("database"),
+                    connect_timeout=10
+                )
+                return conn, tunnel
+            except Exception as e:
+                print(f"[💥 ENGINE ERROR] Сбой SSH-туннелирования: {e}")
+                raise e
+        else:
+            # Прямое подключение к Postgres (без SSH) на основе параметров TOML
+            target_host = db_config.get("host")
+            target_port = int(db_config.get("port", 5432))
+            print(f"[ENGINE] Прямое подключение к СУБД Postgres ({target_host}:{target_port})...")
+            conn = psycopg2.connect(
+                host=target_host,
+                port=target_port,
+                user=db_config.get("user"),
+                password=db_config.get("password"),
+                database=db_config.get("database"),
+                connect_timeout=10
+            )
+            return conn, None
+
+    raise ValueError(f"Неподдерживаемый тип СУБД '{db_type}' в профиле конфигурации [{db_profile_key}]")
 
 
-def run_job(job_name: str, external_params: dict = None):
-    """Главный оркестратор конвейера. Поднимает SSH-туннель, выполняет SQL и собирает Excel."""
-    logger.info(f"===> Запуск конвейера для отчета: {job_name} <===")
+def get_all_jobs():
+    """ Динамический список задач из центрального TOML """
+    try:
+        config = toml.load(MAIN_CONFIG_PATH)
+        return list(config.get("jobs", {}).keys())
+    except Exception:
+        return []
 
-    toml_config_path = os.path.join("config", "main.toml")
-    db_config = {}
-    ssh_config = {}
 
-    if os.path.exists(toml_config_path):
-        with open(toml_config_path, "rb") as f:
-            global_config = tomllib.load(f)
-            db_config = global_config.get("database", {})
-            ssh_config = global_config.get("ssh", {})  # Читаем настройки SSH
-    else:
-        err = f"Критическая ошибка: Глобальный конфиг не найден по пути {toml_config_path}"
-        logger.error(err)
-        raise FileNotFoundError(err)
+def handle_delivery(job_config, file_path):
+    """
+    Блок дистрибуции отчета на основе секции delivery в индивидуальном config.yaml
+    """
+    delivery = job_config.get("delivery", {})
+    if not delivery:
+        return
 
-    if not db_config:
-        raise ValueError(f"В файле {toml_config_path} отсутствует или пуста секция [database]")
+    # Локальное сохранение/архивирование
+    local_cfg = delivery.get("local", {})
+    if local_cfg.get("enabled"):
+        target_dir = local_cfg.get("target_path")
+        if target_dir:
+            try:
+                os.makedirs(target_dir, exist_ok=True)
+                import shutil
+                shutil.copy(file_path, os.path.join(target_dir, os.path.basename(file_path)))
+                print(f"[DELIVERY] Файл успешно скопирован в локальный архив: {target_dir}")
+            except Exception as e:
+                print(f"[💥 DELIVERY ERROR] Локальное архивирование сорвалось: {e}")
 
-    job_dir = os.path.join("jobs", job_name)
-    config_path = os.path.join(job_dir, "config.yaml")
+    # Интеграция с внешними сервисами доставки при необходимости настраивается здесь
+    if delivery.get("mail", {}).get("enabled"):
+        print("[DELIVERY] Внешняя рассылка Mail активна (параметры из main.toml)...")
 
-    if not os.path.exists(config_path):
-        err = f"Файл конфигурации отчета не найден: {config_path}"
-        logger.error(err)
-        log_job_state(job_name, "Ошибка", err)
-        raise FileNotFoundError(err)
+    if delivery.get("nextcloud", {}).get("enabled"):
+        print("[DELIVERY] Внешняя выгрузка в Nextcloud активна...")
+
+
+def run_job(job_name, user_params=None):
+    """
+    Основной конвейер. Читает config.yaml из папки отчета,
+    выполняет SQL-запросы для каждой вкладки, производит маппинг колонок,
+    валидирует результат и запускает дистрибуцию.
+    """
+    if user_params is None:
+        user_params = {}
+
+    print(f"\n[WORKER] Инициализация конвейера отчета: {job_name}")
+
+    # Строим пути строго на основе глобальной JOBS_DIR
+    job_dir = os.path.join(JOBS_DIR, job_name)
+    yaml_path = os.path.join(job_dir, "config.yaml")
+
+    if not os.path.exists(yaml_path):
+        raise FileNotFoundError(f"Критическая ошибка: Конфигурационный файл {yaml_path} не найден!")
+
+    if not os.path.exists(yaml_path):
+         raise FileNotFoundError(f"Критическая ошибка: Конфигурационный файл {yaml_path} не найден!")
+
+    with open(yaml_path, "r", encoding="utf-8") as f:
+        job_config = yaml.safe_load(f)
+
+    if not job_config.get("enabled", True):
+        print(f"[WORKER] Генерация отчета '{job_name}' отменена: статус 'enabled: false'")
+        return None
+
+    workbook_cfg = job_config.get("workbook", {})
+    sheets_cfg = workbook_cfg.get("sheets", [])
+
+    if not sheets_cfg:
+        raise ValueError(f"Конфигурация '{job_name}' не содержит описания листов книги (sheets)")
+
+    # Подключаемся к базе, используя полностью динамический парсер профилей
+    conn, tunnel = get_connection_for_job(job_name)
+    cursor = conn.cursor()
 
     try:
-        # 1. Чтение конфигурации отчета
-        with open(config_path, "r", encoding="utf-8") as f:
-            raw_job_config = yaml.safe_load(f)
+        wb = openpyxl.Workbook()
+        # Сразу удаляем дефолтный лист, чтобы генерировать только вкладки из config.yaml
+        wb.remove(wb.active)
 
-        job_config = sanitize_data(raw_job_config)
+        # Стилизация книги
+        header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="365F91", end_color="365F91", fill_type="solid")
+        center_alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        thin_border = Border(left=Side(style="thin", color="D9D9D9"), right=Side(style="thin", color="D9D9D9"),
+                             top=Side(style="thin", color="D9D9D9"), bottom=Side(style="thin", color="D9D9D9"))
 
-        if not job_config.get("enabled", True):
-            logger.info(f"Отчет '{job_name}' отключен в конфиге. Пропуск.")
-            return
+        # Обработка каждой вкладки отчета последовательно
+        for sheet_idx, sheet_info in enumerate(sheets_cfg):
+            sheet_name = sheet_info.get("name", f"Лист {sheet_idx + 1}")
+            sql_file_name = sheet_info.get("sql_file")
+            columns_mapping = sheet_info.get("columns", {}) or {}
 
-        # 2. Валидация и сборка параметров SQL
-        param_declaration = job_config.get("parameters", {})
-        final_params = {}
+            sql_file_path = os.path.join(job_dir, sql_file_name)
+            if not os.path.exists(sql_file_path):
+                raise FileNotFoundError(f"Не найден файл запроса {sql_file_path} для листа '{sheet_name}'")
 
-        if external_params:
-            clean_external_params = sanitize_data(external_params)
-            if not param_declaration:
-                raise ValueError(f"Отчет '{job_name}' является статическим и не поддерживает работу с параметрами.")
+            with open(sql_file_path, "r", encoding="utf-8") as sf:
+                sql_query = sf.read()
 
-            for p_name in param_declaration.keys():
-                if p_name not in clean_external_params:
-                    raise ValueError(f"Ошибка UI: Не передан обязательный параметр '{p_name}'")
-                final_params[p_name] = clean_external_params[p_name]
+            print(f"[ENGINE] Сбор данных для листа '{sheet_name}' (SQL: {sql_file_name})...")
 
-            logger.info(f"Используются внешние параметры из интерфейса: {final_params}")
-        else:
-            if param_declaration:
-                final_params = calculate_default_params(sanitize_data(param_declaration))
-                logger.info(f"Автозапуск параметрического отчета. Сформированы дефолты: {final_params}")
-            else:
-                final_params = None
-                logger.info("Статический отчет запущен без параметров.")
+            # Выполнение SQL с безопасной подстановкой переданных параметров отчета
+            cursor.execute(sql_query, user_params)
+            rows = cursor.fetchall()
 
-        if final_params:
-            for k, v in list(final_params.items()):
-                p_info = param_declaration.get(k, {})
-                if p_info.get("type") == "int_list" and isinstance(v, (list, tuple)):
-                    final_params[k] = tuple(int(x) for x in v if str(x).isdigit())
+            # Валидация на пустые выборки на основе правил из config.yaml
+            validation = job_config.get("validation", {})
+            if len(rows) == 0 and not validation.get("allow_empty", True):
+                if validation.get("on_empty_action") == "alert":
+                    raise ValueError(
+                        f"Критический сбой валидации данных: Вкладка '{sheet_name}' пуста. Выполнение прервано.")
 
-        # --- 3. ИНИЦИАЛИЗАЦИЯ ПОДКЛЮЧЕНИЯ (С SSH ИЛИ БЕЗ) ---
-        sheets_data = {}
-        wb_config = job_config.get("workbook", {})
-        sheets_list = wb_config.get("sheets", [])
+            # Создание целевой вкладки
+            ws = wb.create_sheet(title=sheet_name)
+            ws.views.sheetView[0].showGridLines = True
 
-        if not sheets_list:
-            raise ValueError("В конфигурации workbook.sheets не описана ни одна вкладка!")
+            # Читаем оригинальные системные имена столбцов, возвращенные СУБД
+            db_columns = [desc[0] for desc in cursor.description]
+            # Маппим оригинальные имена колонок в пользовательские русские имена из config.yaml
+            headers = [columns_mapping.get(col, col) for col in db_columns]
 
-        # Если в main.toml настроена секция [ssh], оборачиваем работу с БД в туннель
-        if ssh_config and ssh_config.get("host"):
-            logger.info(f"[SSH] Инициализация туннеля к {ssh_config['host']}...")
+            # Добавление и стилизация шапки таблицы
+            ws.append(headers)
+            for col_num in range(1, len(headers) + 1):
+                cell = ws.cell(row=1, column=col_num)
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = center_alignment
+                cell.border = thin_border
 
-            # Определяем параметры аутентификации SSH
-            ssh_port = int(ssh_config.get("port", 22))
-            ssh_user = ssh_config.get("username")
-            ssh_password = ssh_config.get("password")
-            ssh_pkey = ssh_config.get("pkey")  # Путь к ключу (если используется вместо пароля)
+            # Заполнение данными
+            for row_data in rows:
+                clean_row = [item.strftime("%Y-%m-%d %H:%M:%S") if isinstance(item, datetime) else item for item in
+                             row_data]
+                ws.append(clean_row)
+                current_row = ws.max_row
+                for col_num in range(1, len(clean_row) + 1):
+                    ws.cell(row=current_row, column=col_num).border = thin_border
 
-            # Конечная цель туннеля на удаленном сервере (обычно локальный Postgres)
-            remote_host = db_config.get("host", "127.0.0.1")
-            remote_port = int(db_config.get("port", 5432))
+            # Корректировка ширины столбцов под размер контента
+            for col in ws.columns:
+                max_len = max(len(str(cell.value or '')) for cell in col)
+                col_letter = openpyxl.utils.get_column_letter(col[0].column)
+                ws.column_dimensions[col_letter].width = max(max_len + 3, 12)
 
-            tunnel_kwargs = {
-                "ssh_address_or_host": (ssh_config["host"], ssh_port),
-                "ssh_username": ssh_user,
-                "remote_bind_address": (remote_host, remote_port)
-            }
-            if ssh_pkey:
-                tunnel_kwargs["ssh_pkey"] = ssh_pkey
-            elif ssh_password:
-                tunnel_kwargs["ssh_password"] = ssh_password
+            ws.freeze_panes = "A2"
 
-            # Запуск контекстного менеджера туннеля
-            with SSHTunnelForwarder(**tunnel_kwargs) as tunnel:
-                logger.info(f"[SSH] Туннель успешно открыт на локальном порту: {tunnel.local_bind_port}")
+        # Сборка финального имени файла по маске filename_template
+        template = workbook_cfg.get("filename_template", f"{job_name}_{{YYYY}}_{{MM}}_{{DD}}.xlsx")
+        now = datetime.now()
+        filename = template.format(
+            YYYY=now.strftime("%Y"),
+            MM=now.strftime("%m"),
+            DD=now.strftime("%d")
+        )
 
-                # Подменяем конфиг БД для работы через локальный "конец" туннеля
-                local_db_config = db_config.copy()
-                local_db_config["host"] = "127.0.0.1"
-                local_db_config["port"] = tunnel.local_bind_port
+        output_file_path = os.path.join(os.getcwd(), "output", filename)
+        os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
 
-                # Создаем клиента БД внутри контекста работающего туннеля
-                db = DBClient(local_db_config)
+        wb.save(output_file_path)
+        wb.close()
+        print(f"[EXCEL] Книга Excel успешно сформирована: {output_file_path}")
 
-                # Выполняем SQL запросы для вкладок
-                for sheet_cfg in sheets_list:
-                    sheet_name = sheet_cfg.get("name", "Sheet1")
-                    sql_filename = sheet_cfg.get("sql_file")
-                    sql_file_path = os.path.join(job_dir, sql_filename)
+        # Локальная или облачная дистрибуция готового файла
+        handle_delivery(job_config, output_file_path)
 
-                    df = db.execute_sql_file(sql_file_path, params=final_params)
-
-                    allow_empty = job_config.get("validation", {}).get("allow_empty", True)
-                    if df.empty and not allow_empty:
-                        logger.warning(f"Вкладка '{sheet_name}' вернула 0 строк. Сборка прервана.")
-                        log_job_state(job_name, "Пропущен (Пустой)")
-                        return
-
-                    column_mapping = sheet_cfg.get("columns", {})
-                    if column_mapping:
-                        df = df.rename(columns=column_mapping)
-
-                    sheets_data[sheet_name] = df
-            # Здесь блок 'with' завершается, туннель безопасно гасится автоматически.
-
-        else:
-            # ПРЯМОЕ ПОДКЛЮЧЕНИЕ (Если секция [ssh] отсутствует или пуста)
-            logger.info("Подключение напрямую к базе данных (без SSH-туннеля).")
-            db = DBClient(db_config)
-
-            for sheet_cfg in sheets_list:
-                sheet_name = sheet_cfg.get("name", "Sheet1")
-                sql_filename = sheet_cfg.get("sql_file")
-                sql_file_path = os.path.join(job_dir, sql_filename)
-
-                df = db.execute_sql_file(sql_file_path, params=final_params)
-
-                allow_empty = job_config.get("validation", {}).get("allow_empty", True)
-                if df.empty and not allow_empty:
-                    logger.warning(f"Вкладка '{sheet_name}' вернула 0 строк. Сборка прервана.")
-                    log_job_state(job_name, "Пропущен (Пустой)")
-                    return
-
-                column_mapping = sheet_cfg.get("columns", {})
-                if column_mapping:
-                    df = df.rename(columns=column_mapping)
-
-                sheets_data[sheet_name] = df
-
-        # 5. Сборка Excel файла (вынесено за пределы блока туннеля, данные уже в памяти)
-        excel_file_path = build_excel_workbook(sheets_data, job_config)
-
-        # УНИВЕРСАЛЬНЫЙ ПОИСК НАЗВАНИЯ ОТЧЕТА
-        try:
-            # Сначала ищем title или name внутри секции report
-            # Если не нашли — ищем title или name на самом верхнем уровне конфига
-            # Если и там пусто — берем техническое имя папки (job_name)
-            job_title = (
-                    job_config.get("report", {}).get("title") or
-                    job_config.get("report", {}).get("name") or
-                    job_config.get("title") or
-                    job_config.get("name") or
-                    job_name
-            )
-        except Exception:
-            job_title = job_name
-
-        log_job_state(job_name, "Успешно", job_title=job_title)
-        logger.info(f"===> Отчет '{job_name}' успешно сгенерирован: {excel_file_path} <===")
-        return excel_file_path
+        return os.path.abspath(output_file_path)
 
     except Exception as err:
-        error_msg = str(err)
-        logger.error(f"Критический сбой конвейера '{job_name}': {error_msg}")
-        # Защита на случай, если упало ДО того, как прочитался конфиг
-        try:
-            j_title = (
-                    job_config.get("report", {}).get("title") or
-                    job_config.get("report", {}).get("name") or
-                    job_config.get("title") or
-                    job_config.get("name") or
-                    job_name
-            )
-        except NameError:
-            j_title = job_name
-        log_job_state(job_name, "Ошибка", j_title, error_msg)
+        print(f"[💥 WORKER ERROR] Ошибка генерации отчета '{job_name}': {err}")
         raise err
+    finally:
+        cursor.close()
+        conn.close()
+        if tunnel:
+            tunnel.stop()
+            print("[ENGINE] Сессия SSH-туннеля закрыта.")
+
+
+if __name__ == "__main__":
+    print("=== Запуск движка отчетов с динамической фабрикой СУБД ===")
+    try:
+        # Тест с передачей параметров (если они требуются вашим .sql скриптам)
+        path = run_job("llo_pharmacy", user_params={"status_id": 1})
+        print(f"[УСПЕХ] Готовый файл находится здесь:\n{path}")
+    except Exception as e:
+        print(f"[ОШИБКА]: {e}")

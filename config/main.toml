@@ -2,20 +2,39 @@
 environment = "development"
 debug = false
 
-[ssh]
-host = "192.168.220.217"       # IP-адрес SSH-сервера (часто совпадает с сервером БД)
-port = 22
-username = "boris"         # Логин для подключения к серверу по SSH
-password = "borisboris"     # Пароль от SSH (если вход по паролю)
-# pkey = "~/.ssh/id_rsa"      # ИЛИ путь к приватному ключу, если вход по ключу
+#[ssh]
+#host = "192.168.220.217"       # IP-адрес SSH-сервера (часто совпадает с сервером БД)
+#port = 22
+#username = "boris"         # Логин для подключения к серверу по SSH
+#password = "borisboris"     # Пароль от SSH (если вход по паролю)
+## pkey = "~/.ssh/id_rsa"      # ИЛИ путь к приватному ключу, если вход по ключу
+#
+#[database]
+#dialect = "postgres"
+#host = "srv-dtemiasllop1-pg01.mosgorzdrav.local"
+#port = 5432
+#user = "llo"
+#password = "llo"
+#database = "llo"
 
-[database]
-dialect = "postgres"
-host = "srv-dtemiasllop1-pg01.mosgorzdrav.local"
+[database.postgres_prod]
+type = "postgres"
+host = "srv-dtemiasllop1-pg01.mosgorzdrav.local" # Внутренний
 port = 5432
 user = "llo"
 password = "llo"
 database = "llo"
+use_ssh = true        # Этот отчёт пойдёт через туннель
+ssh_host = "192.168.220.217"
+ssh_port = 22
+ssh_user = "boris"
+ssh_password = "borisboris"
+#ssh_pkey = "C:/Users/Boris/.ssh/id_rsa"
+
+[database.local_archive]
+type = "sqlite"
+database = "data/archive.db"
+use_ssh = false       # Этот отчёт подключится напрямую
 
 [delivery.nextcloud]
 url = "https://cloud.yourcompany.com"
@@ -30,10 +49,55 @@ sender = "reporter@yourcompany.com"
 password = "email_password"
 
 [delivery.yandex_messenger]
-bot_token = "AgAAAAA..." # Токен вашего бота для отправки ОТЧЕТОВ пользователям
+bot_token = "y0__wgBEJCjte8IGJaREyCp4pnhF5XNg8JEA5PT2CbrToklWlr_bBnN" # Токен вашего бота для отправки ОТЧЕТОВ пользователям
+bot_username = "LLO_reports"
+
 
 [monitoring]
 yandex_chat_id = "admin_chat_id_here" # Сюда будут сыпаться АЛЕРТЫ в случае падения системы
 yandex_bot_token = "bot_token_here"
 
 
+## СЕРВЕР №1: Продакшн LLO (Доступ через SSH-туннель)
+#[database.postgres_prod]
+#type = "postgres"
+#host = "192.168.1.50"
+#port = 5432
+#user = "boris"
+#password = "password_prod"
+#database = "llo"
+#use_ssh = true
+#ssh_host = "jump.alsipharma.ru"
+#ssh_port = 22
+#ssh_user = "boris"
+#ssh_pkey = "C:/Users/Boris/.ssh/id_rsa"
+#
+## СЕРВЕР №2: Аналитический сервер (Доступ НАПРЯМУЮ, без туннеля, другой IP и порт)
+#[database.postgres_analytics]
+#type = "postgres"
+#host = "10.10.24.11"   # Совсем другой сервер в сети
+#port = 5433            # Другой порт
+#user = "reporter_user"
+#password = "password_analytics"
+#database = "bi_data"
+#use_ssh = false        # Ему туннель не нужен
+#
+## СЕРВЕР №3: Локальный архив на SQLite
+#[database.local_archive]
+#type = "sqlite"
+#database = "data/archive.db"
+#
+
+# ====================================================
+# МАППИНГ ОТЧЕТОВ К РАЗНЫМ СЕРВЕРАМ
+# ====================================================
+[jobs]
+# Эти два отчета идут на Сервер №1 через туннель:
+llo_pharmacy = "database.postgres_prod"
+person_dates_report = "database.postgres_prod"
+
+# Этот отчет идет на Сервер №2 НАПРЯМУЮ:
+marketing_yield_report = "database.postgres_analytics"
+
+# Этот отчет берется из локального файла:
+person_report = "database.local_archive"

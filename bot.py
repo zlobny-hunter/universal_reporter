@@ -2,58 +2,77 @@ import os
 import time
 import sqlite3
 import requests
-import paramiko
-import urllib3
+import toml
 import subprocess
-# Подавление предупреждений об отсутствии SSL-сертификатов
+import urllib3
+from main import run_job, get_all_jobs
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-if not hasattr(paramiko, 'DSSKey'):
-    class DummyDSSKey: pass
+# Находим папку, где лежит сам файл main.py
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# Если main.py лежит внутри папки 'src', то корень проекта — на уровень выше
+if os.path.basename(CURRENT_DIR) == "src":
+    BASE_DIR = os.path.dirname(CURRENT_DIR)
+else:
+    BASE_DIR = CURRENT_DIR
 
-    paramiko.DSSKey = DummyDSSKey
+MAIN_CONFIG_PATH = os.path.join(BASE_DIR, "config", "main.toml")
 
-from main import get_all_jobs, run_job
+try:
+    config_data = toml.load(MAIN_CONFIG_PATH)
+    yandex_config = config_data.get("delivery", {}).get("yandex_messenger", {})
+    BOT_TOKEN = yandex_config.get("bot_token")
+    BOT_USERNAME = yandex_config.get("bot_username", "LLO_reports")
 
-# --- НАСТРОЙКИ ---
-BOT_TOKEN = "y0__wgBEJCjte8IGJaREyCp4pnhF5XNg8JEA5PT2CbrToklWlr_bBnN"
-BOT_USERNAME = "LLO_reports"
+    if not BOT_TOKEN:
+        raise ValueError("BOT_TOKEN не найден в конфигурационном файле.")
+except Exception as e:
+    print(f"[💥 CRITICAL CONFIG ERROR]: {e}")
+    exit(1)
 
+# URLs и HEADERS на основе загруженного токена
 UPDATES_URL = "https://botapi.messenger.yandex.net/bot/v1/messages/getUpdates"
 SEND_TEXT_URL = "https://botapi.messenger.yandex.net/bot/v1/messages/sendText/"
 SEND_FILE_URL = "https://botapi.messenger.yandex.net/bot/v1/messages/sendFile/"
 
-HEADERS = {
-    "Authorization": f"OAuth {BOT_TOKEN}",
-    "Content-Type": "application/json"
-}
-
+HEADERS = {"Authorization": f"OAuth {BOT_TOKEN}", "Content-Type": "application/json"}
 DB_PATH = os.path.join(os.getcwd(), "data", "job_status.db")
 
+
+# (Далее идет стандартная функция check_access_and_register_guest к локальной job_status.db без изменений)
 
 def check_access_and_register_guest(yandex_id: str, display_name: str = "") -> bool:
     if not yandex_id: return False
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+
+    # Прямое подключение к локальной базе авторизации на диске Jump-сервера
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+    except Exception as conn_err:
+        print(f"[DB CONNECTION FAILED]: Ошибка открытия локальной job_status.db: {conn_err}")
+        return False
+
     full_name = display_name.strip() or "Анонимный сотрудник"
     try:
+        # Проверяем, активирован ли пользователь администратором
         cursor.execute("SELECT is_active FROM users WHERE yandex_id = ?", (str(yandex_id),))
         row = cursor.fetchone()
-        if row is not None: return bool(row[0])
+        if row is not None:
+            return bool(row[0])
 
+        # Если пользователя нет в базе — создаем гостевую заявку со статусом 0 (активация руками)
         cursor.execute("INSERT INTO users (username, display_name, yandex_id, is_active) VALUES (?, ?, ?, 0)",
                        (f"yandex_{yandex_id}", full_name, str(yandex_id)))
         conn.commit()
-        print(f"[SECURITY] Создана заявка на доступ: {full_name} (ID: {yandex_id})")
+        print(f"[SECURITY] Создана новая заявка на доступ: {full_name} (ID: {yandex_id})")
         return False
     except Exception as e:
-        print(f"[SQLITE ERROR] {e}")
+        print(f"[SQLITE ERROR] Ошибка при работе с правами пользователей: {e}")
         return False
     finally:
         conn.close()
-
 
 def process_bot_logic(update):
     """ Процессор логики: работа через текстовые команды-триггеры """
