@@ -3,7 +3,7 @@ import time
 import sqlite3
 import requests
 import toml
-#import subprocess
+# import subprocess
 import urllib3
 import yaml
 from main import run_job, get_all_jobs, JOBS_DIR
@@ -224,36 +224,68 @@ def process_bot_logic(update):
                     file_name = os.path.basename(excel_path)
                     print(f"[DEBUG EXEC] Подготовка к отправке файла: {file_name}")
 
-                    file_headers = {"Authorization": f"OAuth {BOT_TOKEN}"}
-                    payload = {
-                        "chat_id": str(chat_id),
-                        "caption": f"✅ Отчет '{job_name}' успешно сформирован."
-                    }
+                    # Читаем свежие настройки дистрибуции из config.yaml отчета
+                    send_to_chat = True
+                    nc_enabled = False
+                    nc_profile = "emias_kgu"
+                    nc_path = ""
 
-                    with open(excel_path, "rb") as f:
-                        files = {
-                            "document": (file_name, f,
-                                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                    if os.path.exists(yaml_path):
+                        try:
+                            with open(yaml_path, "r", encoding="utf-8") as f:
+                                j_cfg = yaml.safe_load(f) or {}
+                                deliv = j_cfg.get("delivery", {})
+                                send_to_chat = deliv.get("send_to_chat", True)
+
+                                nc_cfg = deliv.get("nextcloud", {})
+                                nc_enabled = nc_cfg.get("enabled", False)
+                                nc_profile = nc_cfg.get("profile", "emias_kgu")
+                                nc_path = nc_cfg.get("remote_path", "").strip("/")
+                        except Exception as e_cfg:
+                            print(f"[BOT ERROR] Не удалось прочитать delivery-секцию: {e_cfg}")
+
+                    # Формируем информативный текст статуса
+                    status_text = f"✅ **Отчет '{job_name}' успешно сформирован!**\n"
+                    if nc_enabled:
+                        status_text += f"☁️ *Файл выгружен в Nextcloud ({nc_profile}):* `{nc_path}/{file_name}`\n"
+
+                    if send_to_chat:
+                        status_text += "📎 *Файл прикреплен ниже:* "
+                        requests.post(SEND_TEXT_URL, json={"chat_id": chat_id, "text": status_text}, headers=HEADERS,
+                                      verify=False)
+
+                        file_headers = {"Authorization": f"OAuth {BOT_TOKEN}"}
+                        payload = {
+                            "chat_id": str(chat_id),
+                            "caption": f"✅ Отчет '{job_name}' успешно сформирован."
                         }
 
-                        print(f"[DEBUG EXEC] Отправка проверенного Multipart на Яндекс...")
-                        res = requests.post(
-                            SEND_FILE_URL,
-                            headers=file_headers,
-                            data=payload,
-                            files=files,
-                            verify=False,
-                            timeout=60
-                        )
+                        with open(excel_path, "rb") as f:
+                            files = {
+                                "document": (file_name, f,
+                                             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                            }
 
-                    print(f"[DEBUG EXEC] Ответ Яндекса: Статус {res.status_code}, Текст: {res.text}")
+                            print(f"[DEBUG EXEC] Отправка проверенного Multipart на Яндекс...")
+                            res = requests.post(
+                                SEND_FILE_URL,
+                                headers=file_headers,
+                                data=payload,
+                                files=files,
+                                verify=False,
+                                timeout=60
+                            )
 
-                    if res.status_code == 200:
-                        print(f"[DEBUG EXEC] Файл {file_name} успешно отправлен в чат!")
+                        print(f"[DEBUG EXEC] Ответ Яндекса: Статус {res.status_code}, Текст: {res.text}")
+
+                        if res.status_code != 200:
+                            requests.post(SEND_TEXT_URL, json={"chat_id": chat_id,
+                                                               "text": f"❌ Ошибка шлюза Яндекса при передаче файла:\n{res.text}"},
+                                          headers=HEADERS, verify=False)
                     else:
-                        requests.post(SEND_TEXT_URL, json={"chat_id": chat_id,
-                                                           "text": f"❌ Ошибка шлюза Яндекса при передаче файла:\n{res.text}"},
-                                      headers=HEADERS, verify=False)
+                        status_text += "ℹ️ *Отправка файла напрямую в чат отключена в настройках отчета.*"
+                        requests.post(SEND_TEXT_URL, json={"chat_id": chat_id, "text": status_text}, headers=HEADERS,
+                                      verify=False)
 
             except Exception as e:
                 print(f"[💥 ОШИБКА ГЕНЕРАЦИИ]: {e}")

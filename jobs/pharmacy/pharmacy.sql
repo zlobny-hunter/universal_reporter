@@ -1,1 +1,1 @@
-select * from llo.pharmacy
+select * from llo.pharmacy limit 10

@@ -37,18 +37,24 @@ workbook:
         
 # НОВЫЙ БЛОК: Дистрибуция отчета
 delivery:
+  send_to_chat: true  # <-- FALSE: файл НЕ полетит в чат мессенджера
+
   local:
     enabled: true
     target_path: "D:\\Archive\\Reports" # Замените на любой реальный локальный путь для теста
+
   mail:
     enabled: false # Включите (true) и настройте доступы в config/main.toml, если хотите проверить отправку писем
     to:
       - "your_test_email@company.com"
     subject: "📊 Свежая аналитика по менеджерам"
     body: "Приветствую! Отчет сформирован автоматически. Файл во вложении."      
+
   nextcloud:
-    enabled: false # Включите при наличии тестового стенда
-    remote_path: "Reports/Sales"
+    enabled: true # Включите при наличии тестового стенда
+    profile: "covid" # <-- Имя профиля из main.toml
+    remote_path: "Обмен файлами РБК_ЕМИАС"
+
   yandex_messenger:
     enabled: false # Включите при наличии рабочего токена бота
     chat_id: "0/0/..." 

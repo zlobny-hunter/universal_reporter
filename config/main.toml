@@ -36,10 +36,18 @@ type = "sqlite"
 database = "data/archive.db"
 use_ssh = false       # Этот отчёт подключится напрямую
 
-[delivery.nextcloud]
-url = "https://cloud.yourcompany.com"
-username = "report_bot"
-password = "app-specific-password-here"
+[delivery.nextcloud.covid]
+server_url = "https://cloud-kgu.emias.mos.ru"
+username = "NilovB"
+password = "Barbados_101"
+path_user = "976A24FE-0F41-4D29-8E25-2FDCEA1CFE97"
+
+# Профиль №2: Какое-то другое или личное облако/стенд
+#[delivery.nextcloud.other_cloud]
+#server_url = "https://other-nextcloud.ru"
+#username = "boris_admin"
+#password = "ваш_пароль_2"
+#path_user = "boris_admin" # Если там обычный логин в путях, пишем его же
 
 [delivery.mail]
 smtp_server = "smtp.yourcompany.com"

@@ -168,8 +168,76 @@ def handle_delivery(job_config, file_path):
     if delivery.get("mail", {}).get("enabled"):
         print("[DELIVERY] Внешняя рассылка Mail активна (параметры из main.toml)...")
 
-    if delivery.get("nextcloud", {}).get("enabled"):
-        print("[DELIVERY] Внешняя выгрузка в Nextcloud активна...")
+    # Внешняя выгрузка в Nextcloud (с поддержкой нескольких профилей)
+    nc_config = delivery.get("nextcloud", {})
+    if nc_config.get("enabled"):
+        print("[DELIVERY] Запуск выгрузки отчета в Nextcloud...")
+
+        # 1. Загружаем глобальные доступы из центрального конфига main.toml
+        try:
+            import toml
+            global_config = toml.load(MAIN_CONFIG_PATH)
+            # Извлекаем всю секцию nextcloud со всеми профилями
+            nc_delivery_all = global_config.get("delivery", {}).get("nextcloud", {})
+        except Exception as e:
+            print(f"[💥 NEXTCLOUD ERROR] Не удалось прочитать main.toml: {e}")
+            return
+
+        # Определяем, какой профиль затребован отчетом (по умолчанию covid)
+        profile_name = nc_config.get("profile", "covid")
+        # Берем настройки конкретного профиля (например, 'covid') из прочитанного словаря
+        nc_global = nc_delivery_all.get(profile_name, {})
+
+        if not nc_global:
+            print(f"[💥 NEXTCLOUD ERROR] Профиль '{profile_name}' не найден в конфигурации main.toml!")
+            return
+
+        server_url = nc_global.get("server_url", "").rstrip("/")
+        username = nc_global.get("username")
+        password = nc_global.get("password")
+        path_user = nc_global.get("path_user", username)
+
+        remote_path = nc_config.get("remote_path", "").strip("/")
+        file_name = os.path.basename(file_path)
+
+        if not server_url or not username or not password:
+            print(f"[💥 NEXTCLOUD ERROR] В профиле '{profile_name}' отсутствуют настройки подключения")
+            return
+
+        # 2. Формируем WebDAV URL с безопасным кодированием кириллицы и пробелов
+        import urllib.parse
+
+        if remote_path:
+            encoded_path = "/".join([urllib.parse.quote(part) for part in remote_path.split("/")])
+            webdav_url = f"{server_url}/remote.php/dav/files/{path_user}/{encoded_path}/{urllib.parse.quote(file_name)}"
+        else:
+            webdav_url = f"{server_url}/remote.php/dav/files/{path_user}/{urllib.parse.quote(file_name)}"
+
+        # 3. Отправляем файл методом PUT с игнорированием корпоративных SSL
+        try:
+            import requests
+            import urllib3
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+            print(f"[DELIVERY] Отправка файла в профиль '{profile_name}'...")
+            with open(file_path, "rb") as f:
+                response = requests.put(
+                    webdav_url,
+                    auth=(username, password),
+                    data=f,
+                    verify=False,
+                    timeout=60
+                )
+
+            if response.status_code in [201, 204]:
+                path_log = f"{remote_path}/{file_name}" if remote_path else file_name
+                print(f"[✅ NEXTCLOUD SUCCESS] [{profile_name}] Файл успешно загружен: {path_log}")
+            else:
+                print(
+                    f"[💥 NEXTCLOUD ERROR] [{profile_name}] Ошибка загрузки (Код: {response.status_code}): {response.text}")
+
+        except Exception as n_ex:
+            print(f"[💥 NEXTCLOUD CRITICAL ERROR] [{profile_name}] Ошибка при передаче данных: {n_ex}")
 
 
 def run_job(job_name, user_params=None):
