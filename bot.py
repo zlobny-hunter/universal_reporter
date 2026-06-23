@@ -3,7 +3,7 @@ import time
 import sqlite3
 import requests
 import toml
-import subprocess
+#import subprocess
 import urllib3
 import yaml
 from main import run_job, get_all_jobs, JOBS_DIR
@@ -81,8 +81,15 @@ def process_bot_logic(update):
     user_id = user_data.get('id')
     display_name = user_data.get('display_name', '').strip()
 
+    # Получаем текст и ОЧИЩАЕМ его от обратных кавычек, которые добавляет Яндекс для кода
     raw_text = update.get('text', '').strip()
-
+    if raw_text:
+        raw_text = raw_text.replace("`", "").strip()  # <-- ВОТ ЭТА СТРОКА ОЧИСТИТ ВВОД
+    # === САМЫЙ ГЛАВНЫЙ ТОЧЕЧНЫЙ ДЕБАГ ВЫШЕ ВСЕХ ПРОВЕРОК ===
+    if raw_text:
+        print(f"\n[СЕРВЕР ЯНДЕКСА ПРИСЛАЛ ТЕКСТ]: '{raw_text}'")
+        print(f"[АНАЛИЗ] Начинается ли с 'run:': {raw_text.lower().startswith('run:')}")
+    # ======================================================
     if not chat_id or not user_id:
         return
 
@@ -98,12 +105,23 @@ def process_bot_logic(update):
 
     # 2. Перехват команды на запуск конкретного отчета (с поддержкой параметров)
     if raw_text.lower().startswith("run:"):
+        # === КРИТИЧЕСКИЙ ДЕБАГ-ЛОГ ===
+        print(f"\n[ВХОДЯЩАЯ КОМАНДА] Получен текст: '{raw_text}'")
+
         tokens = raw_text.split()
+        print(f"[DEB] Токены строки: {tokens}")
+
+        if not tokens:
+            return
 
         command_part = tokens[0]  # 'run:job_name'
         job_name = command_part.split(":", 1)[-1].strip()
 
         valid_jobs = get_all_jobs()
+        print(f"[DEB] Выделенное имя задачи: '{job_name}'")
+        print(f"[DEB] Список зарегистрированных в main.toml задач: {valid_jobs}")
+        print(f"[DEB] Входит ли задача в список разрешенных: {job_name in valid_jobs}")
+        # =============================
 
         if job_name in valid_jobs:
             # Инициализация дефолтных значений
@@ -141,7 +159,7 @@ def process_bot_logic(update):
 
                 example_string = " ".join(example_values)
 
-                # 2. ДИНАМИЧЕСКИЙ ДЕКОРАТИВНЫЙ ШТРИХ: подстраиваем текст под тип параметров
+                # 2. подстраиваем текст под тип параметров
                 if len(param_keys) == 1:
                     instruction_text = "передав значение параметра (для отправки списка используйте запятую **,**):"
                 else:
@@ -259,19 +277,40 @@ def process_bot_logic(update):
     if "/start" in text_lower or "отчеты" in text_lower or "llo_reports" in text_lower or is_mentioned:
         jobs = get_all_jobs()
         if jobs:
-            menu_text = "📋 **Доступные отчеты в системе LLO:**\n\n"
+            menu_text = "📋 **Доступные отчеты:**\n\n"
             menu_text += "Чтобы запустить сборку данных, скопируйте и отправьте в чат одну из команд:\n\n"
-            for job in jobs:
-                menu_text += f"🔹 run:{job}\n"
 
-            requests.post(SEND_TEXT_URL, json={"chat_id": chat_id, "text": menu_text}, headers=HEADERS, verify=False)
+            for job in jobs:
+                # По умолчанию человеческое имя совпадает с техническим
+                job_title = job
+
+                # Пробуем прочитать красивый title из индивидуального config.yaml отчета
+                job_dir = os.path.join(JOBS_DIR, job)
+                yaml_path = os.path.join(job_dir, "config.yaml")
+
+                if os.path.exists(yaml_path):
+                    try:
+                        with open(yaml_path, "r", encoding="utf-8") as f:
+                            job_config = yaml.safe_load(f)
+                            if job_config and "title" in job_config:
+                                job_title = job_config["title"]
+                    except Exception:
+                        # Если не прочиталось — не падаем, оставляем техническое имя
+                        pass
+
+                # Выводим красивую строчку: Человеческое имя и рядом команда для копирования
+                menu_text += f"🔹 **{job_title}** — `run:{job}`\n"
+
+            requests.post(SEND_TEXT_URL, json={"chat_id": chat_id, "text": menu_text}, headers=HEADERS,
+                          verify=False)
         else:
-            requests.post(SEND_TEXT_URL, json={"chat_id": chat_id, "text": "📭 В папке /jobs нет доступных отчетов."},
+            requests.post(SEND_TEXT_URL,
+                          json={"chat_id": chat_id, "text": "📭 В папке /jobs нет доступных отчетов."},
                           headers=HEADERS, verify=False)
 
 
 def start_pooling():
-    print(f"[BOT] Бот @{BOT_USERNAME} успешно запущен на Jump-сервере. Режим: Текстовые команды.")
+    print(f"[BOT] Бот @{BOT_USERNAME} успешно запущен на сервере. Режим: Текстовые команды.")
 
     last_update_id = -1
     try:

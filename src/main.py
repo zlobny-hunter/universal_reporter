@@ -379,7 +379,7 @@ if __name__ == "__main__":
     print("=== Запуск движка отчетов с динамической фабрикой СУБД ===")
     try:
         # Тест с передачей параметров (если они требуются вашим .sql скриптам)
-        path = run_job("llo_pharmacy", user_params={"status_id": 1})
+        path = run_job("pharmacy", user_params={"status_id": 1})
         print(f"[УСПЕХ] Готовый файл находится здесь:\n{path}")
     except Exception as e:
         print(f"[ОШИБКА]: {e}")

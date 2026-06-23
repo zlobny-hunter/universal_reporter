@@ -1,5 +1,5 @@
 name: "prescription"                 # Технический ID (как имя папки)
-title: "Тестовый отчет по рецептам"          # Красивое имя для UI и истории
+title: "Рецепты все таблицы"          # Красивое имя для UI и истории
 
 enabled: true
 require_parameters: true

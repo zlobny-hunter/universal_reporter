@@ -93,7 +93,7 @@ use_ssh = false        # Ему туннель не нужен
 # ====================================================
 [jobs]
 # Эти два отчета идут на Сервер №1 через туннель:
-llo_pharmacy = "database.postgres_ssh"
+pharmacy = "database.postgres_ssh"
 prescription = "database.postgres_ssh"
 
 # Этот отчет идет на Сервер №2 НАПРЯМУЮ:
@@ -101,4 +101,4 @@ person_dates = "database.postgres_151"
 person = "database.postgres_151"
 
 # Этот отчет берется из локального файла:
-person_report = "database.local_archive"
+#person_report = "database.local_archive"

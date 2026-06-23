@@ -2,9 +2,9 @@
 <project version="4">
   <component name="DataSourcePerFileMappings">
     <file url="file://$PROJECT_DIR$/app.py" value="f3b396ff-01f4-499c-8e78-17476d4b8e80" />
-    <file url="file://$PROJECT_DIR$/jobs/llo_pharmacy/pharmacy.sql" value="f4320f35-ba92-4a2f-a487-45d7153e3b51" />
     <file url="file://$PROJECT_DIR$/jobs/person/person.sql" value="2c6a494c-0e81-4c1d-beae-f0ece06980ad" />
     <file url="file://$PROJECT_DIR$/jobs/person_dates/person_dates.sql" value="2c6a494c-0e81-4c1d-beae-f0ece06980ad" />
+    <file url="file://$PROJECT_DIR$/jobs/pharmacy/pharmacy.sql" value="f4320f35-ba92-4a2f-a487-45d7153e3b51" />
     <file url="file://$PROJECT_DIR$/jobs/prescription/e_recipe_log.sql" value="f4320f35-ba92-4a2f-a487-45d7153e3b51" />
     <file url="file://$PROJECT_DIR$/jobs/prescription/prescription.sql" value="f4320f35-ba92-4a2f-a487-45d7153e3b51" />
     <file url="file://$PROJECT_DIR$/jobs/prescription/prescription_events.sql" value="f4320f35-ba92-4a2f-a487-45d7153e3b51" />
