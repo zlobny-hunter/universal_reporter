@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
-    <file url="file://$PROJECT_DIR$/jobs/person_dates_report/person_dates.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/jobs/person_report/person.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/jobs/llo_pharmacy/pharmacy.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/jobs/person/person.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/jobs/person_dates/person_dates.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/jobs/prescription/e_recipe_log.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/jobs/prescription/prescription.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/jobs/prescription/prescription_events.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/jobs/prescription/prescription_row.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/jobs/prescription/prescription_sale.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/jobs/prescription/prescription_servicing.sql" dialect="PostgreSQL" />
   </component>
 </project>

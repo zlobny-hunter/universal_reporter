@@ -1,7 +1,9 @@
-name: "Тестовый отчет по сотрудникам"
-enabled: true
+name: "prescription"                 # Технический ID (как имя папки)
+title: "Тестовый отчет по рецептам"          # Красивое имя для UI и истории
 
-schedule: "interval:1" # <--- Запуск каждую минуту для теста
+enabled: true
+require_parameters: true
+#schedule: "interval:1" # <--- Запуск каждую минуту для теста
 # 1. Периодические запуски (interval)
 #schedule: "interval:1"         # Каждую 1 минуту (ваш тестовый вариант)
 #schedule: "interval:15"        # Каждые 15 минут
@@ -20,21 +22,46 @@ schedule: "interval:1" # <--- Запуск каждую минуту для те
 # Настройки проверки данных
 validation:
   allow_empty: false         # Пустые данные запрещены
-  on_empty_action: "alert"   # Если пусто — паниковать (прервать выполнение)
+  on_empty_action: "allow"          #"alert"   # Если пусто — паниковать (прервать выполнение)
 
 # Структура Excel-файла
 workbook:
-  filename_template: "сотрудники{YYYY}_{MM}_{DD}.xlsx"
+  filename_template: "рецепты_все_таблицы_{YYYY}_{MM}_{DD}.xlsx"
   sheets:
-    - name: "сотрудники"   # Имя первой вкладки
-      sql_file: "pharmacy.sql"
+    - name: "prescription"   # Имя первой вкладки
+      sql_file: "prescription.sql"
       columns:                # Расширенные имена колонок
-        id: "№ П/П"
+        id: "ID"
+        #manager_name: "ФИО Сотрудника"
+    - name: "prescription_row"   # Имя первой вкладки
+      sql_file: "prescription_row.sql"
+      columns:                # Расширенные имена колонок
+        id: "ID"
+        #manager_name: "ФИО Сотрудника"
+    - name: "prescription_events"   # Имя первой вкладки
+      sql_file: "prescription_events.sql"
+      columns:                # Расширенные имена колонок
+        id: "ID"
+        #manager_name: "ФИО Сотрудника"
+    - name: "prescription_sale"   # Имя первой вкладки
+      sql_file: "prescription_sale.sql"
+      columns:                # Расширенные имена колонок
+        id: "ID"
+        #manager_name: "ФИО Сотрудника"
+    - name: "prescription_servicing"   # Имя первой вкладки
+      sql_file: "prescription_servicing.sql"
+      columns:                # Расширенные имена колонок
+        id: "ID"
+        #manager_name: "ФИО Сотрудника"
+    - name: "e_recipe_log"   # Имя первой вкладки
+      sql_file: "e_recipe_log.sql"
+      columns:                # Расширенные имена колонок
+        id: "ID"
         #manager_name: "ФИО Сотрудника"
         #amount: "Выручка, ₽"
         #report_generated_at: "Дата расчета"
-        
-# НОВЫЙ БЛОК: Дистрибуция отчета
+
+#Дистрибуция отчета
 delivery:
   local:
     enabled: true
@@ -52,3 +79,11 @@ delivery:
     enabled: false # Включите при наличии рабочего токена бота
     chat_id: "0/0/..." 
     caption: "📊 Ловите свежие данные по эффективности!"    
+    
+# ДЕКЛАРАЦИЯ ПАРАМЕТРОВ
+parameters:
+  numbers:
+    type: "string"
+    default: "00Д4532001501, 00Д4532001502" # Дефолтное значение через запятую без пробелов
+    label: "Список номеров рецептов (через запятую, без пробелов)"
+    

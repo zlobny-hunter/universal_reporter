@@ -1,0 +1,7 @@
+SELECT p.NUMBER_, ps2.*
+FROM llo.PRESCRIPTION p
+    JOIN llo.PRESCRIPTION_SERVICING ps ON ps.PRESCRIPTION_ID = p.ID
+    JOIN llo.PRESCRIPTION_SALE ps2 ON ps2.SERVICING_ID = ps.ID
+WHERE p.NUMBER_ = ANY(string_to_array(%(numbers)s, ','))
+limit  10000
+

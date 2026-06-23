@@ -4,10 +4,11 @@ import toml
 import yaml  # Для чтения индивидуальных config.yaml отчетов
 import sqlite3
 import psycopg2
-from datetime import datetime
+from datetime import datetime, timedelta
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
+now = datetime.now()
 # === КОСТЫЛЬ СОВМЕСТИМОСТИ ДЛЯ PARAMIKO & SSHTUNNEL ===
 import paramiko
 
@@ -172,11 +173,6 @@ def handle_delivery(job_config, file_path):
 
 
 def run_job(job_name, user_params=None):
-    """
-    Основной конвейер. Читает config.yaml из папки отчета,
-    выполняет SQL-запросы для каждой вкладки, производит маппинг колонок,
-    валидирует результат и запускает дистрибуцию.
-    """
     if user_params is None:
         user_params = {}
 
@@ -189,15 +185,68 @@ def run_job(job_name, user_params=None):
     if not os.path.exists(yaml_path):
         raise FileNotFoundError(f"Критическая ошибка: Конфигурационный файл {yaml_path} не найден!")
 
-    if not os.path.exists(yaml_path):
-         raise FileNotFoundError(f"Критическая ошибка: Конфигурационный файл {yaml_path} не найден!")
-
+    # 2. Загрузка конфигурации отчета
     with open(yaml_path, "r", encoding="utf-8") as f:
         job_config = yaml.safe_load(f)
 
     if not job_config.get("enabled", True):
         print(f"[WORKER] Генерация отчета '{job_name}' отменена: статус 'enabled: false'")
         return None
+
+    # --- УМНЫЙ И БЕЗОПАСНЫЙ СБОР ПАРАМЕТРОВ ---
+    defined_params = job_config.get("parameters", {}) or {}
+    final_params = {}
+
+    # Заполняем дефолтными значениями из config.yaml
+    for p_name, p_info in defined_params.items():
+        if isinstance(p_info, dict):
+            final_params[p_name] = p_info.get("default")
+
+    # Накатываем то, что пришло от пользователя/бота поверх дефолтов
+    if user_params and isinstance(user_params, dict):
+        for k, v in user_params.items():
+            final_params[k] = v
+
+    # КОНВЕРТАЦИЯ СТРОКОВЫХ МАКРОСОВ В РЕАЛЬНЫЕ ДАТЫ ДЛЯ СУБД
+    from datetime import timedelta
+    now = datetime.now()
+
+    for k, v in final_params.items():
+        if isinstance(v, str):
+            # 1. ГЛУБОКАЯ ОЧИСТКА ВВОДА ОТ МУСОРА ИЗ EXCEL
+            # Удаляем переводы строк, возвраты каретки и табуляцию, заменяя их на пустоту
+            v = v.replace("\n", "").replace("\r", "").replace("\t", "")
+
+            # Заменяем скрытые неразрывные пробелы (\xa0) на обычные
+            v = v.replace("\xa0", " ")
+
+            # Удаляем любые кавычки (одинарные, двойные, обратные апострофы, французские ёлочки)
+            for quote in ["`", "'", '"', "«", "»"]:
+                v = v.replace(quote, "")
+
+            # Срезаем лишние пробелы по краям, которые могли остаться
+            v = v.strip()
+
+            # Пересохраняем очищенное значение обратно в словарь
+            final_params[k] = v
+
+            # 2. ДАЛЬШЕ ИДЕТ ВАШ СТАНДАРТНЫЙ БЛОК ПАРСИНГА МАКРОСОВ
+            val_clean = v.lower()
+
+            if val_clean == "today":
+                final_params[k] = now.date()
+            val_clean = v.lower().strip()
+            if val_clean == "today":
+                final_params[k] = now.date()
+            elif val_clean == "minus_7_days":
+                final_params[k] = (now - timedelta(days=7)).date()
+            elif val_clean == "minus_30_days":
+                final_params[k] = (now - timedelta(days=30)).date()
+
+    print(f"[ENGINE] Итоговый набор параметров для СУБД (после парсинга макросов): {final_params}")
+    # --------------------------------------------------------------
+
+    # === ИСПРАВЛЕНО: Старое ошибочное чтение несуществующего sql_file отсюда УБРАНО ===
 
     workbook_cfg = job_config.get("workbook", {})
     sheets_cfg = workbook_cfg.get("sheets", [])
@@ -211,8 +260,7 @@ def run_job(job_name, user_params=None):
 
     try:
         wb = openpyxl.Workbook()
-        # Сразу удаляем дефолтный лист, чтобы генерировать только вкладки из config.yaml
-        wb.remove(wb.active)
+        wb.remove(wb.active)  # Удаляем дефолтный лист
 
         # Стилизация книги
         header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
@@ -227,18 +275,21 @@ def run_job(job_name, user_params=None):
             sql_file_name = sheet_info.get("sql_file")
             columns_mapping = sheet_info.get("columns", {}) or {}
 
-            sql_file_path = os.path.join(job_dir, sql_file_name)
-            if not os.path.exists(sql_file_path):
-                raise FileNotFoundError(f"Не найден файл запроса {sql_file_path} для листа '{sheet_name}'")
+            # ЧИТАЕМ SQL-ФАЙЛ СТРОГО ЗДЕСЬ — ВНУТРИ ЦИКЛА ВКЛАДКИ
+            sql_path = os.path.join(job_dir, sql_file_name)
+            if not os.path.exists(sql_path):
+                raise FileNotFoundError(f"Не найден файл запроса {sql_path} для листа '{sheet_name}'")
 
-            with open(sql_file_path, "r", encoding="utf-8") as sf:
+            with open(sql_path, "r", encoding="utf-8") as sf:
                 sql_query = sf.read()
 
             print(f"[ENGINE] Сбор данных для листа '{sheet_name}' (SQL: {sql_file_name})...")
 
-            # Выполнение SQL с безопасной подстановкой переданных параметров отчета
-            cursor.execute(sql_query, user_params)
+            # ИСПРАВЛЕНО: Передаем отвалидированный final_params вместо сырого user_params
+            cursor.execute(sql_query, final_params)
             rows = cursor.fetchall()
+
+            # ... Дальше идет ваш стандартный код заполнения Excel (ws = wb.create_sheet...)
 
             # Валидация на пустые выборки на основе правил из config.yaml
             validation = job_config.get("validation", {})
@@ -267,8 +318,18 @@ def run_job(job_name, user_params=None):
 
             # Заполнение данными
             for row_data in rows:
-                clean_row = [item.strftime("%Y-%m-%d %H:%M:%S") if isinstance(item, datetime) else item for item in
-                             row_data]
+                clean_row = []
+                for item in row_data:
+                    # 1. Если это дата и время — форматируем в красивую строку
+                    if isinstance(item, datetime):
+                        clean_row.append(item.strftime("%Y-%m-%d %H:%M:%S"))
+                    # 2. Если поле бинарное (bytes или memoryview) — пишем заглушку
+                    elif isinstance(item, (bytes, memoryview)):
+                        clean_row.append("бинарный код")
+                    # 3. Все остальные стандартные типы (числа, строки, None) оставляем как есть
+                    else:
+                        clean_row.append(item)
+
                 ws.append(clean_row)
                 current_row = ws.max_row
                 for col_num in range(1, len(clean_row) + 1):

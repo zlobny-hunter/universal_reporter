@@ -17,7 +17,7 @@ debug = false
 #password = "llo"
 #database = "llo"
 
-[database.postgres_prod]
+[database.postgres_ssh]
 type = "postgres"
 host = "srv-dtemiasllop1-pg01.mosgorzdrav.local" # Внутренний
 port = 5432
@@ -73,14 +73,14 @@ yandex_bot_token = "bot_token_here"
 #ssh_pkey = "C:/Users/Boris/.ssh/id_rsa"
 #
 ## СЕРВЕР №2: Аналитический сервер (Доступ НАПРЯМУЮ, без туннеля, другой IP и порт)
-#[database.postgres_analytics]
-#type = "postgres"
-#host = "10.10.24.11"   # Совсем другой сервер в сети
-#port = 5433            # Другой порт
-#user = "reporter_user"
-#password = "password_analytics"
-#database = "bi_data"
-#use_ssh = false        # Ему туннель не нужен
+[database.postgres_151]
+type = "postgres"
+host = "172.16.132.151"   # Совсем другой сервер в сети
+port = 5432            # Другой порт
+user = "nbb"
+password = "spargo_26"
+database = "nbb"
+use_ssh = false        # Ему туннель не нужен
 #
 ## СЕРВЕР №3: Локальный архив на SQLite
 #[database.local_archive]
@@ -93,11 +93,12 @@ yandex_bot_token = "bot_token_here"
 # ====================================================
 [jobs]
 # Эти два отчета идут на Сервер №1 через туннель:
-llo_pharmacy = "database.postgres_prod"
-person_dates_report = "database.postgres_prod"
+llo_pharmacy = "database.postgres_ssh"
+prescription = "database.postgres_ssh"
 
 # Этот отчет идет на Сервер №2 НАПРЯМУЮ:
-marketing_yield_report = "database.postgres_analytics"
+person_dates = "database.postgres_151"
+person = "database.postgres_151"
 
 # Этот отчет берется из локального файла:
 person_report = "database.local_archive"

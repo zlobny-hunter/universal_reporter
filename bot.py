@@ -5,7 +5,9 @@ import requests
 import toml
 import subprocess
 import urllib3
-from main import run_job, get_all_jobs
+import yaml
+from main import run_job, get_all_jobs, JOBS_DIR
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Находим папку, где лежит сам файл main.py
@@ -40,13 +42,10 @@ HEADERS = {"Authorization": f"OAuth {BOT_TOKEN}", "Content-Type": "application/j
 DB_PATH = os.path.join(os.getcwd(), "data", "job_status.db")
 
 
-# (Далее идет стандартная функция check_access_and_register_guest к локальной job_status.db без изменений)
-
 def check_access_and_register_guest(yandex_id: str, display_name: str = "") -> bool:
     if not yandex_id: return False
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
-    # Прямое подключение к локальной базе авторизации на диске Jump-сервера
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -56,13 +55,11 @@ def check_access_and_register_guest(yandex_id: str, display_name: str = "") -> b
 
     full_name = display_name.strip() or "Анонимный сотрудник"
     try:
-        # Проверяем, активирован ли пользователь администратором
         cursor.execute("SELECT is_active FROM users WHERE yandex_id = ?", (str(yandex_id),))
         row = cursor.fetchone()
         if row is not None:
             return bool(row[0])
 
-        # Если пользователя нет в базе — создаем гостевую заявку со статусом 0 (активация руками)
         cursor.execute("INSERT INTO users (username, display_name, yandex_id, is_active) VALUES (?, ?, ?, 0)",
                        (f"yandex_{yandex_id}", full_name, str(yandex_id)))
         conn.commit()
@@ -74,8 +71,9 @@ def check_access_and_register_guest(yandex_id: str, display_name: str = "") -> b
     finally:
         conn.close()
 
+
 def process_bot_logic(update):
-    """ Процессор логики: работа через текстовые команды-триггеры """
+    """ Процессор логики: работа через текстовые команды-триггеры с поддержкой параметров """
     chat_data = update.get('chat', {})
     chat_id = chat_data.get('id')
 
@@ -83,7 +81,7 @@ def process_bot_logic(update):
     user_id = user_data.get('id')
     display_name = user_data.get('display_name', '').strip()
 
-    text = update.get('text', '').strip().lower()
+    raw_text = update.get('text', '').strip()
 
     if not chat_id or not user_id:
         return
@@ -98,61 +96,139 @@ def process_bot_logic(update):
         requests.post(SEND_TEXT_URL, json={"chat_id": chat_id, "text": deny_text}, headers=HEADERS, verify=False)
         return
 
-    # 2. Перехват команды на запуск конкретного отчета (например: run:llo_pharmacy)
-    if text.startswith("run:"):
-        job_name = text.split("run:")[-1].strip()
+    # 2. Перехват команды на запуск конкретного отчета (с поддержкой параметров)
+    if raw_text.lower().startswith("run:"):
+        tokens = raw_text.split()
+
+        command_part = tokens[0]  # 'run:job_name'
+        job_name = command_part.split(":", 1)[-1].strip()
+
         valid_jobs = get_all_jobs()
 
         if job_name in valid_jobs:
+            # Инициализация дефолтных значений
+            defined_params = {}
+            require_params = False
+            provided_args = tokens[1:]
+
+            # Читаем config.yaml отчета
+            job_dir = os.path.join(JOBS_DIR, job_name)
+            yaml_path = os.path.join(job_dir, "config.yaml")
+
+            if os.path.exists(yaml_path):
+                try:
+                    with open(yaml_path, "r", encoding="utf-8") as f:
+                        job_config = yaml.safe_load(f)
+                        if job_config:
+                            defined_params = job_config.get("parameters", {}) or {}
+                            require_params = job_config.get("require_parameters", False)
+                except Exception as ex_yaml:
+                    print(f"[BOT ERROR] Не удалось прочитать config.yaml для {job_name}: {ex_yaml}")
+
+            param_keys = list(defined_params.keys())
+
+            # СЦЕНАРИЙ А: Аргументы в чате не переданы, но параметры у отчета есть
+            if len(provided_args) == 0 and len(param_keys) > 0:
+
+                # 1. Собираем красивую строку примера на основе дефолтных значений из config.yaml
+                example_values = []
+                for k in param_keys:
+                    p_info = defined_params.get(k, {})
+                    if isinstance(p_info, dict) and "default" in p_info:
+                        example_values.append(str(p_info["default"]))
+                    else:
+                        example_values.append("значение")
+
+                example_string = " ".join(example_values)
+
+                # 2. ДИНАМИЧЕСКИЙ ДЕКОРАТИВНЫЙ ШТРИХ: подстраиваем текст под тип параметров
+                if len(param_keys) == 1:
+                    instruction_text = "передав значение параметра (для отправки списка используйте запятую **,**):"
+                else:
+                    instruction_text = "передав аргументы через пробел (если внутри параметра нужен список — указывайте его через запятую без пробелов):"
+
+                # Вариант 1: Жесткий запрет запуска без параметров (require_parameters: true)
+                if require_params:
+                    alert_text = (
+                            f"⚠️ **Ошибка запуска отчета '{job_name}'**\n\n"
+                            f"Этот отчет содержит конфиденциальные или объемные данные, "
+                            f"его **запрещено** запускать без параметров!\n\n"
+                            f"Пожалуйста, повторите команду, {instruction_text}\n"
+                            f"`run:{job_name} " + " ".join([f"[{k}]" for k in param_keys]) + "`\n\n"
+                                                                                             f"💡 *Пример запуска:* `run:{job_name} {example_string}`"
+                    )
+                    requests.post(SEND_TEXT_URL, json={"chat_id": chat_id, "text": alert_text}, headers=HEADERS,
+                                  verify=False)
+                    return
+
+                # Вариант 2: Пустой запуск разрешен, выводим стандартную подсказку по типам
+                else:
+                    help_text = f"📋 **Справка по параметрам для отчета '{job_name}':**\n\n"
+                    help_text += f"Чтобы запустить отчет с кастомными значениями, повторите команду, {instruction_text}\n"
+                    help_text += f"`run:{job_name} " + " ".join([f"[{k}]" for k in param_keys]) + "`\n\n"
+                    help_text += "**Ожидаемые параметры:**\n"
+
+                    for idx, (p_name, p_info) in enumerate(defined_params.items(), 1):
+                        p_type = p_info.get("type", "строка") if isinstance(p_info, dict) else "не указан"
+                        p_def = p_info.get("default", "нет") if isinstance(p_info, dict) else "нет"
+                        p_label = p_info.get("label", "") if isinstance(p_info, dict) else ""
+
+                        label_str = f" ({p_label})" if p_label else ""
+                        help_text += f"{idx}. **{p_name}**{label_str} — Тип: `{p_type}`, По умолчанию: `{p_def}`\n"
+
+                    help_text += f"\n💡 *Пример запуска:* `run:{job_name} {example_string}`"
+
+                    requests.post(SEND_TEXT_URL, json={"chat_id": chat_id, "text": help_text}, headers=HEADERS,
+                                  verify=False)
+                    return
+
+            # СЦЕНАРИЙ Б: Параметры переданы (или у отчета вообще нет параметров), формируем словарь
+            user_params = {}
+            for i, k in enumerate(param_keys):
+                if i < len(provided_args):
+                    user_params[k] = provided_args[i].strip()
+                else:
+                    if isinstance(defined_params[k], dict):
+                        user_params[k] = defined_params[k].get("default")
+
+            # Отправляем уведомление о начале генерации
             requests.post(SEND_TEXT_URL, json={"chat_id": chat_id,
-                                               "text": f"⏳ Запущен конвейер для отчета '{job_name}'...\nПодключаюсь к серверу БД. Пожалуйста, подождите."},
+                                               "text": f"⏳ Запущен конвейер для отчета '{job_name}'...\nПараметры: {user_params}\nПодключаюсь к серверу БД. Пожалуйста, подождите."},
                           headers=HEADERS, verify=False)
 
             try:
-                print(f"[DEBUG EXEC] Вызываем run_job('{job_name}')...")
-                excel_path = run_job(job_name)
+                print(f"[DEBUG EXEC] Вызываем run_job('{job_name}', user_params={user_params})...")
+                excel_path = run_job(job_name, user_params=user_params)
 
-                # ==== ЛОГИ ДЛЯ ПРОВЕРКИ ПУТИ ====
                 print(f"[DEBUG EXEC] Функция run_job вернула значение: '{excel_path}'")
-                if excel_path:
-                    print(f"[DEBUG EXEC] Проверка os.path.exists('{excel_path}'): {os.path.exists(excel_path)}")
-                    if os.path.exists(excel_path):
-                        print(f"[DEBUG EXEC] Размер файла на диске: {os.path.getsize(excel_path)} байт")
-                # ===============================
-
                 if excel_path and os.path.exists(excel_path):
+                    print(f"[DEBUG EXEC] Размер файла на диске: {os.path.getsize(excel_path)} байт")
                     file_name = os.path.basename(excel_path)
                     print(f"[DEBUG EXEC] Подготовка к отправке файла: {file_name}")
 
-                    # Заголовки: для Multipart убираем Content-Type (requests сделает всё сам)
-                    file_headers = {
-                        "Authorization": f"OAuth {BOT_TOKEN}"
-                    }
-
-                    # Все текстовые параметры кладем строго в data (тело формы)
+                    file_headers = {"Authorization": f"OAuth {BOT_TOKEN}"}
                     payload = {
                         "chat_id": str(chat_id),
                         "caption": f"✅ Отчет '{job_name}' успешно сформирован."
                     }
 
-                    # Открываем файл и упаковываем в поле 'document'
                     with open(excel_path, "rb") as f:
                         files = {
                             "document": (file_name, f,
                                          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
                         }
 
-                        print(f"[DEBUG EXEC] Отправка проверенного Multipart (поле 'document') на Яндекс...")
+                        print(f"[DEBUG EXEC] Отправка проверенного Multipart на Яндекс...")
                         res = requests.post(
                             SEND_FILE_URL,
                             headers=file_headers,
-                            data=payload,  # Параметры в теле
-                            files=files,  # Файл в теле под ключом document
+                            data=payload,
+                            files=files,
                             verify=False,
                             timeout=60
                         )
 
-                    print(f"[DEBUG EXEC] Ответ Яндекса на отправку файла: Статус {res.status_code}, Текст: {res.text}")
+                    print(f"[DEBUG EXEC] Ответ Яндекса: Статус {res.status_code}, Текст: {res.text}")
 
                     if res.status_code == 200:
                         print(f"[DEBUG EXEC] Файл {file_name} успешно отправлен в чат!")
@@ -170,7 +246,9 @@ def process_bot_logic(update):
                           json={"chat_id": chat_id, "text": f"❓ Ошибка: Отчет '{job_name}' не найден в системе."},
                           headers=HEADERS, verify=False)
         return
+
     # 3. Вывод главного меню со списком доступных отчетов
+    text_lower = raw_text.lower()
     is_mentioned = False
     if 'mentioned_users' in update:
         for user in update['mentioned_users']:
@@ -178,7 +256,7 @@ def process_bot_logic(update):
                 is_mentioned = True
                 break
 
-    if "/start" in text or "отчеты" in text or "llo_reports" in text or is_mentioned:
+    if "/start" in text_lower or "отчеты" in text_lower or "llo_reports" in text_lower or is_mentioned:
         jobs = get_all_jobs()
         if jobs:
             menu_text = "📋 **Доступные отчеты в системе LLO:**\n\n"

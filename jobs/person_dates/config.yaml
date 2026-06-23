@@ -1,4 +1,6 @@
-name: "Тестовый отчет по сотрудникам c датами"
+name: "person_dates"
+title: "Тестовый отчет по сотрудникам c датами"          # Красивое имя для UI и истории
+
 enabled: true
 #schedule: "interval:1" # <--- Запуск каждую минуту для теста
 # 1. Периодические запуски (interval)
@@ -19,7 +21,7 @@ enabled: true
 # Настройки проверки данных
 validation:
   allow_empty: false         # Пустые данные запрещены
-  on_empty_action: "alert"   # Если пусто — паниковать (прервать выполнение)
+  on_empty_action: "allow"          #"alert"   # Если пусто — паниковать (прервать выполнение)
 
 # Структура Excel-файла
 workbook:
