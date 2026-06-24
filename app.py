@@ -6,16 +6,14 @@ import yaml
 import datetime
 import streamlit_authenticator as stauth
 
-# Импортируем готовые функции из нашего ядра
 from src.main import run_job, get_all_jobs
 from src.utils.config_loader import setup_logging
 
-# Инициализируем базовое логирование системы, чтобы логи ручного запуска тоже писались
 setup_logging()
 
 # Настройка конфигурации веб-страницы в браузере
 st.set_page_config(
-    page_title="Универсальный Отчетник",
+    page_title="Универсальный Отчетник v1.0",
     page_icon="📊",
     layout="wide"
 )
@@ -82,7 +80,6 @@ elif st.session_state.get('authentication_status') == True:
         st.write("---")
 
 
-# ... дальше идут ваши таблицы, селекты дат, кнопка запуска конвейера ...
 st.title("📊 Панель управления системой отчетов v1.0")
 st.markdown("Здесь вы можете отслеживать статус автоматических задач и запускать отчеты вручную.")
 

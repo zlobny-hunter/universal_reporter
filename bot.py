@@ -3,7 +3,6 @@ import time
 import sqlite3
 import requests
 import toml
-# import subprocess
 import urllib3
 import yaml
 from main import run_job, get_all_jobs, JOBS_DIR

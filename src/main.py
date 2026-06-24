@@ -31,9 +31,9 @@ else:
 MAIN_CONFIG_PATH = os.path.join(BASE_DIR, "config", "main.toml")
 JOBS_DIR = os.path.join(BASE_DIR, "jobs")
 
-print(f"[DEBUG PATHS] Корень проекта определен как: {BASE_DIR}")
-print(f"[DEBUG PATHS] Центральный конфиг ищется по: {MAIN_CONFIG_PATH}")
-print(f"[DEBUG PATHS] Папка с отчетами находится по: {JOBS_DIR}")
+# print(f"[DEBUG PATHS] Корень проекта определен как: {BASE_DIR}")
+# print(f"[DEBUG PATHS] Центральный конфиг ищется по: {MAIN_CONFIG_PATH}")
+# print(f"[DEBUG PATHS] Папка с отчетами находится по: {JOBS_DIR}")
 
 
 def get_connection_for_job(job_name):
