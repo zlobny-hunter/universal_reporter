@@ -5,10 +5,13 @@ import os
 import yaml
 import datetime
 import streamlit_authenticator as stauth
+from dotenv import load_dotenv
 
 from src.main import run_job, get_all_jobs
 from src.utils.config_loader import setup_logging
+from src.utils.params import process_parameters, format_params_for_db, parse_int_list_from_string
 
+load_dotenv()
 setup_logging()
 
 # Настройка конфигурации веб-страницы в браузере
@@ -40,10 +43,11 @@ def load_users_from_db():
 credentials = load_users_from_db()
 
 # --- 2. ИНИЦИАЛИЗАЦИЯ АУТЕНТИФИКАТОРА ---
+cookie_secret = os.getenv("STREAMLIT_COOKIE_SECRET", "super_secret_cookie_key")
 authenticator = stauth.Authenticate(
     credentials=credentials,
     cookie_name="report_system_cookie",  # Имя куки для запоминания сессии
-    key="super_secret_cookie_key",  # Любой случайный ключ для шифрования куки
+    key=cookie_secret,  # Ключ для шифрования куки из переменных окружения
     cookie_expiry_days=30  # Сколько дней помнить пользователя
 )
 
@@ -187,8 +191,8 @@ else:
 
             elif p_type == "int_list":
                 raw_list = st.text_input(f"🔢 {p_label} ({p_name}, через запятую):", "101, 102")
-                # Сразу конвертируем в кортеж для SQL
-                ui_params[p_name] = tuple(int(x.strip()) for x in raw_list.split(",") if x.strip().isdigit())
+                # Используем централизованную функцию для парсинга списка
+                ui_params[p_name] = parse_int_list_from_string(raw_list)
     else:
         st.success("✨ Этот отчет является статическим. Параметры не требуются.")
 
@@ -198,21 +202,13 @@ else:
     if btn_run:
         with st.spinner(f"Выполняется конвейер для отчета '{selected_job}'..."):
             try:
-                # Форматируем даты из виджетов Streamlit в строки для SQL
-                formatted_params = {}
-                for k, v in ui_params.items():
-                    if isinstance(v, datetime.date):
-                        # Если это дата начала, даем время 00:00, если конца — 23:59 для точности фильтра
-                        if "start" in k:
-                            formatted_params[k] = v.strftime("%Y-%m-%d 00:00:00")
-                        else:
-                            formatted_params[k] = v.strftime("%Y-%m-%d 23:59:59")
-                    else:
-                        formatted_params[k] = v
+                # Используем централизованную обработку параметров
+                final_params = process_parameters(param_decl, ui_params)
+                
+                # Форматируем параметры для БД (преобразуем даты в строки)
+                formatted_params = format_params_for_db(final_params)
 
                 # Передаем параметры (или None, если отчет статический)
-                # Если мы попытаемся передать параметры туда, где их нет, 
-                # оркестратор выкинет ValueError, и мы безопасно покажем её пользователю.
                 run_job(selected_job, external_params=formatted_params if has_parameters else None)
                 
                 st.success(f"🎉 Отчет '{selected_job}' успешно выполнен!")

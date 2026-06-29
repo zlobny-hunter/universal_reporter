@@ -5,7 +5,8 @@ import requests
 import toml
 import urllib3
 import yaml
-from main import run_job, get_all_jobs, JOBS_DIR
+from src.main import run_job, get_all_jobs, JOBS_DIR
+from src.utils.params import process_parameters, parse_int_list_from_string
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -207,6 +208,9 @@ def process_bot_logic(update):
                 else:
                     if isinstance(defined_params[k], dict):
                         user_params[k] = defined_params[k].get("default")
+            
+            # Используем централизованную обработку параметров
+            final_params = process_parameters(defined_params, user_params)
 
             # Отправляем уведомление о начале генерации
             requests.post(SEND_TEXT_URL, json={"chat_id": chat_id,
@@ -214,8 +218,8 @@ def process_bot_logic(update):
                           headers=HEADERS, verify=False)
 
             try:
-                print(f"[DEBUG EXEC] Вызываем run_job('{job_name}', user_params={user_params})...")
-                excel_path = run_job(job_name, user_params=user_params)
+                print(f"[DEBUG EXEC] Вызываем run_job('{job_name}', user_params={final_params})...")
+                excel_path = run_job(job_name, user_params=final_params)
 
                 print(f"[DEBUG EXEC] Функция run_job вернула значение: '{excel_path}'")
                 if excel_path and os.path.exists(excel_path):

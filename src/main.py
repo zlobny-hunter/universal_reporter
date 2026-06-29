@@ -7,6 +7,8 @@ import psycopg2
 from datetime import datetime, timedelta
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from psycopg2 import pool
+from src.utils.params import process_parameters
 
 now = datetime.now()
 # === КОСТЫЛЬ СОВМЕСТИМОСТИ ДЛЯ PARAMIKO & SSHTUNNEL ===
@@ -30,6 +32,9 @@ else:
 # 3. Абсолютные пути к ключевым точкам системы
 MAIN_CONFIG_PATH = os.path.join(BASE_DIR, "config", "main.toml")
 JOBS_DIR = os.path.join(BASE_DIR, "jobs")
+
+# Connection pool for PostgreSQL (global)
+_postgres_pool = None
 
 # print(f"[DEBUG PATHS] Корень проекта определен как: {BASE_DIR}")
 # print(f"[DEBUG PATHS] Центральный конфиг ищется по: {MAIN_CONFIG_PATH}")
@@ -121,14 +126,23 @@ def get_connection_for_job(job_name):
             target_host = db_config.get("host")
             target_port = int(db_config.get("port", 5432))
             print(f"[ENGINE] Прямое подключение к СУБД Postgres ({target_host}:{target_port})...")
-            conn = psycopg2.connect(
-                host=target_host,
-                port=target_port,
-                user=db_config.get("user"),
-                password=db_config.get("password"),
-                database=db_config.get("database"),
-                connect_timeout=10
-            )
+            
+            # Используем connection pool для PostgreSQL
+            global _postgres_pool
+            if _postgres_pool is None:
+                _postgres_pool = pool.SimpleConnectionPool(
+                    minconn=1,
+                    maxconn=10,
+                    host=target_host,
+                    port=target_port,
+                    user=db_config.get("user"),
+                    password=db_config.get("password"),
+                    database=db_config.get("database"),
+                    connect_timeout=10
+                )
+                print(f"[ENGINE] Создан connection pool для PostgreSQL (min=1, max=10)")
+            
+            conn = _postgres_pool.getconn()
             return conn, None
 
     raise ValueError(f"Неподдерживаемый тип СУБД '{db_type}' в профиле конфигурации [{db_profile_key}]")
@@ -257,59 +271,36 @@ def run_job(job_name, user_params=None):
     with open(yaml_path, "r", encoding="utf-8") as f:
         job_config = yaml.safe_load(f)
 
+    # Получаем db_config для использования в finally блоке
+    db_config = None
+    try:
+        if not os.path.exists(MAIN_CONFIG_PATH):
+            raise FileNotFoundError(f"Критическая ошибка: Главный конфиг не найден: {MAIN_CONFIG_PATH}")
+        
+        config = toml.load(MAIN_CONFIG_PATH)
+        jobs_section = config.get("jobs", {})
+        db_profile_key = jobs_section.get(job_name)
+        
+        if db_profile_key:
+            db_config = config
+            for part in db_profile_key.split('.'):
+                if isinstance(db_config, dict):
+                    db_config = db_config.get(part)
+                else:
+                    db_config = None
+                    break
+    except Exception:
+        pass  # Если не удалось получить db_config, продолжим без него
+
     if not job_config.get("enabled", True):
         print(f"[WORKER] Генерация отчета '{job_name}' отменена: статус 'enabled: false'")
         return None
 
     # --- УМНЫЙ И БЕЗОПАСНЫЙ СБОР ПАРАМЕТРОВ ---
     defined_params = job_config.get("parameters", {}) or {}
-    final_params = {}
-
-    # Заполняем дефолтными значениями из config.yaml
-    for p_name, p_info in defined_params.items():
-        if isinstance(p_info, dict):
-            final_params[p_name] = p_info.get("default")
-
-    # Накатываем то, что пришло от пользователя/бота поверх дефолтов
-    if user_params and isinstance(user_params, dict):
-        for k, v in user_params.items():
-            final_params[k] = v
-
-    # КОНВЕРТАЦИЯ СТРОКОВЫХ МАКРОСОВ В РЕАЛЬНЫЕ ДАТЫ ДЛЯ СУБД
-    from datetime import timedelta
-    now = datetime.now()
-
-    for k, v in final_params.items():
-        if isinstance(v, str):
-            # 1. ГЛУБОКАЯ ОЧИСТКА ВВОДА ОТ МУСОРА ИЗ EXCEL
-            # Удаляем переводы строк, возвраты каретки и табуляцию, заменяя их на пустоту
-            v = v.replace("\n", "").replace("\r", "").replace("\t", "")
-
-            # Заменяем скрытые неразрывные пробелы (\xa0) на обычные
-            v = v.replace("\xa0", " ")
-
-            # Удаляем любые кавычки (одинарные, двойные, обратные апострофы, французские ёлочки)
-            for quote in ["`", "'", '"', "«", "»"]:
-                v = v.replace(quote, "")
-
-            # Срезаем лишние пробелы по краям, которые могли остаться
-            v = v.strip()
-
-            # Пересохраняем очищенное значение обратно в словарь
-            final_params[k] = v
-
-            # 2. ДАЛЬШЕ ИДЕТ ВАШ СТАНДАРТНЫЙ БЛОК ПАРСИНГА МАКРОСОВ
-            val_clean = v.lower()
-
-            if val_clean == "today":
-                final_params[k] = now.date()
-            val_clean = v.lower().strip()
-            if val_clean == "today":
-                final_params[k] = now.date()
-            elif val_clean == "minus_7_days":
-                final_params[k] = (now - timedelta(days=7)).date()
-            elif val_clean == "minus_30_days":
-                final_params[k] = (now - timedelta(days=30)).date()
+    
+    # Используем централизованную обработку параметров
+    final_params = process_parameters(defined_params, user_params)
 
     print(f"[ENGINE] Итоговый набор параметров для СУБД (после парсинга макросов): {final_params}")
     # --------------------------------------------------------------
@@ -437,7 +428,11 @@ def run_job(job_name, user_params=None):
         raise err
     finally:
         cursor.close()
-        conn.close()
+        # Возвращаем соединение в пул для PostgreSQL, закрываем для SQLite
+        if _postgres_pool and db_config and db_config.get("type") == "postgres" and not db_config.get("use_ssh", False):
+            _postgres_pool.putconn(conn)
+        else:
+            conn.close()
         if tunnel:
             tunnel.stop()
             print("[ENGINE] Сессия SSH-туннеля закрыта.")

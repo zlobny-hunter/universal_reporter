@@ -1,2 +1,3 @@
 /.venv/
 /config/main.toml
+.env
