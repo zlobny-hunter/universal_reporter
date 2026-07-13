@@ -1,5 +1,8 @@
 name: "pharmacy"                 # Технический ID (как имя папки)
 title: "Аптеки"          # Красивое имя для UI и истории
+category: "Медицинские учреждения"          # Категория для группировки в боте
+database_profile: "database.postgres_llo"  # Профиль БД из main.toml
+
 enabled: true
 
 schedule: "interval:1" # <--- Запуск каждую минуту для теста

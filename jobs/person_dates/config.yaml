@@ -1,5 +1,7 @@
 name: "person_dates"
 title: "Сотрудники c датами"          # Красивое имя для UI и истории
+category: "Кадры"          # Категория для группировки в боте
+database_profile: "database.postgres_llo"  # Профиль БД из main.toml
 
 enabled: true
 #schedule: "interval:1" # <--- Запуск каждую минуту для теста

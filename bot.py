@@ -42,16 +42,16 @@ HEADERS = {"Authorization": f"OAuth {BOT_TOKEN}", "Content-Type": "application/j
 DB_PATH = os.path.join(os.getcwd(), "data", "job_status.db")
 
 # Хранение состояния пользователей для ввода параметров
-# Формат: {user_id: {"job_name": str, "param_index": int, "params": dict, "defined_params": dict}}
+# Формат: {user_id: {"job_name": str, "param_index": int, "params": dict, "defined_params": dict, "menu_level": str, "current_category": str}}
 user_states = {}
 
 
-def create_inline_keyboard(jobs):
-    """Создает inline клавиатуру в формате Яндекс Messenger"""
-    inline_keyboard = []
+def create_categories_keyboard(jobs):
+    """Создает клавиатуру с категориями"""
+    # Собираем уникальные категории
+    categories = set()
+    
     for job in jobs:
-        # Пробуем получить красивое название из config.yaml
-        job_title = job
         job_dir = os.path.join(JOBS_DIR, job)
         yaml_path = os.path.join(job_dir, "config.yaml")
         
@@ -59,18 +59,118 @@ def create_inline_keyboard(jobs):
             try:
                 with open(yaml_path, "r", encoding="utf-8") as f:
                     job_config = yaml.safe_load(f)
-                    if job_config and "title" in job_config:
-                        job_title = job_config["title"]
+                    if job_config and "category" in job_config:
+                        categories.add(job_config["category"])
+            except Exception:
+                pass
+    
+    if not categories:
+        categories.add("Без категории")
+    
+    # Формируем клавиатуру с кнопками категорий
+    inline_keyboard = []
+    
+    for category in sorted(categories):
+        inline_keyboard.append({
+            "text": f"📁 {category}",
+            "callback_data": {
+                "data": f"category:{category}",
+                "request_id": int(time.time() * 1000)
+            }
+        })
+    
+    return inline_keyboard
+
+
+def create_jobs_keyboard(jobs, category):
+    """Создает клавиатуру с задачами для конкретной категории"""
+    inline_keyboard = []
+    
+    for job in jobs:
+        job_dir = os.path.join(JOBS_DIR, job)
+        yaml_path = os.path.join(job_dir, "config.yaml")
+        
+        job_title = job
+        job_category = "Без категории"
+        
+        if os.path.exists(yaml_path):
+            try:
+                with open(yaml_path, "r", encoding="utf-8") as f:
+                    job_config = yaml.safe_load(f)
+                    if job_config:
+                        if "title" in job_config:
+                            job_title = job_config["title"]
+                        if "category" in job_config:
+                            job_category = job_config["category"]
             except Exception:
                 pass
         
-        inline_keyboard.append({
+        # Добавляем только задачи из указанной категории
+        if job_category == category:
+            inline_keyboard.append({
+                "text": f"📊 {job_title}",
+                "callback_data": {
+                    "data": f"run:{job}",
+                    "request_id": int(time.time() * 1000)
+                }
+            })
+    
+    # Добавляем кнопку "Назад"
+    inline_keyboard.append({
+        "text": "⬅️ Назад к категориям",
+        "callback_data": {
+            "data": "back_to_categories",
+            "request_id": int(time.time() * 1000)
+        }
+    })
+    
+    return inline_keyboard
+
+
+def create_inline_keyboard(jobs):
+    """Создает inline клавиатуру в формате Яндекс Messenger с группировкой по категориям"""
+    # Группируем задачи по категориям
+    categories = {}
+    
+    for job in jobs:
+        job_dir = os.path.join(JOBS_DIR, job)
+        yaml_path = os.path.join(job_dir, "config.yaml")
+        
+        job_title = job
+        job_category = "Без категории"  # Категория по умолчанию
+        
+        if os.path.exists(yaml_path):
+            try:
+                with open(yaml_path, "r", encoding="utf-8") as f:
+                    job_config = yaml.safe_load(f)
+                    if job_config:
+                        if "title" in job_config:
+                            job_title = job_config["title"]
+                        if "category" in job_config:
+                            job_category = job_config["category"]
+            except Exception:
+                pass
+        
+        if job_category not in categories:
+            categories[job_category] = []
+        
+        categories[job_category].append({
             "text": f"📊 {job_title}",
             "callback_data": {
                 "data": f"run:{job}",
-                "request_id": int(time.time() * 1000)  # Уникальный ID для каждого запроса
+                "request_id": int(time.time() * 1000)
             }
         })
+    
+    # Формируем плоскую клавиатуру с префиксами категорий в названиях кнопок
+    inline_keyboard = []
+    
+    # Сортируем категории по алфавиту
+    for category in sorted(categories.keys()):
+        # Добавляем кнопки задач этой категории с префиксом категории
+        for job_button in categories[category]:
+            job_button["text"] = f"[{category}] {job_button['text']}"
+            inline_keyboard.append(job_button)
     
     return inline_keyboard
 
@@ -148,6 +248,35 @@ def process_bot_logic(update):
         if data_value.startswith('run:'):
             job_name = data_value.split(':', 1)[-1].strip()
             execute_job(chat_id, job_name, {})
+        elif data_value.startswith('category:'):
+            # Показываем задачи выбранной категории
+            category = data_value.split(':', 1)[-1].strip()
+            jobs = get_all_jobs()
+            inline_keyboard = create_jobs_keyboard(jobs, category)
+            
+            menu_text = f"📋 **Категория: {category}**\n\nВыберите отчет для запуска:"
+            
+            payload = {
+                "chat_id": chat_id,
+                "text": menu_text,
+                "inline_keyboard": inline_keyboard
+            }
+            
+            requests.post(SEND_TEXT_URL, json=payload, headers=HEADERS, verify=False)
+        elif data_value == 'back_to_categories':
+            # Возвращаемся к списку категорий
+            jobs = get_all_jobs()
+            inline_keyboard = create_categories_keyboard(jobs)
+            
+            menu_text = "📋 **Доступные категории отчетов:**\n\nВыберите категорию для просмотра отчетов:"
+            
+            payload = {
+                "chat_id": chat_id,
+                "text": menu_text,
+                "inline_keyboard": inline_keyboard
+            }
+            
+            requests.post(SEND_TEXT_URL, json=payload, headers=HEADERS, verify=False)
         return
     
     # Получаем текст и ОЧИЩАЕМ его от обратных кавычек, которые добавляет Яндекс для кода
@@ -285,7 +414,40 @@ def process_bot_logic(update):
                           headers=HEADERS, verify=False)
         return
 
-    # 3. Вывод главного меню со списком доступных отчетов
+    # 3. Обработка нажатия на кнопку категории (текст начинается с 📁)
+    if raw_text.startswith("📁"):
+        category = raw_text.replace("📁", "").strip()
+        jobs = get_all_jobs()
+        inline_keyboard = create_jobs_keyboard(jobs, category)
+        
+        menu_text = f"📋 **Категория: {category}**\n\nВыберите отчет для запуска:"
+        
+        payload = {
+            "chat_id": chat_id,
+            "text": menu_text,
+            "inline_keyboard": inline_keyboard
+        }
+        
+        requests.post(SEND_TEXT_URL, json=payload, headers=HEADERS, verify=False)
+        return
+
+    # 4. Обработка кнопки "Назад к категориям"
+    if raw_text == "⬅️ Назад к категориям":
+        jobs = get_all_jobs()
+        inline_keyboard = create_categories_keyboard(jobs)
+        
+        menu_text = "📋 **Доступные категории отчетов:**\n\nВыберите категорию для просмотра отчетов:"
+        
+        payload = {
+            "chat_id": chat_id,
+            "text": menu_text,
+            "inline_keyboard": inline_keyboard
+        }
+        
+        requests.post(SEND_TEXT_URL, json=payload, headers=HEADERS, verify=False)
+        return
+
+    # 5. Вывод главного меню со списком доступных отчетов
     text_lower = raw_text.lower()
     is_mentioned = False
     if 'mentioned_users' in update:
@@ -297,13 +459,13 @@ def process_bot_logic(update):
     if "/start" in text_lower or "отчеты" in text_lower or "llo_reports" in text_lower or is_mentioned or not raw_text:
         jobs = get_all_jobs()
         if jobs:
-            menu_text = "📋 **Доступные отчеты:**\n\n"
-            menu_text += "Нажмите на кнопку ниже для запуска отчета:\n\n"
+            menu_text = "📋 **Доступные категории отчетов:**\n\n"
+            menu_text += "Выберите категорию для просмотра отчетов:\n\n"
             
-            inline_keyboard = create_inline_keyboard(jobs)
+            inline_keyboard = create_categories_keyboard(jobs)
             
             payload = {
-                "chat_id": chat_id, 
+                "chat_id": chat_id,
                 "text": menu_text,
                 "inline_keyboard": inline_keyboard
             }
@@ -579,6 +741,17 @@ def execute_job(chat_id, job_name, user_params):
                 status_text += "ℹ️ *Отправка файла напрямую в чат отключена в настройках отчета.*"
                 requests.post(SEND_TEXT_URL, json={"chat_id": chat_id, "text": status_text}, headers=HEADERS,
                               verify=False)
+
+            # После успешного выполнения показываем категории
+            jobs = get_all_jobs()
+            inline_keyboard = create_categories_keyboard(jobs)
+            menu_text = "📋 **Доступные категории отчетов:**\n\nВыберите категорию для просмотра отчетов:"
+            payload = {
+                "chat_id": chat_id,
+                "text": menu_text,
+                "inline_keyboard": inline_keyboard
+            }
+            requests.post(SEND_TEXT_URL, json=payload, headers=HEADERS, verify=False)
 
     except Exception as e:
         print(f"[💥 ОШИБКА ГЕНЕРАЦИИ]: {e}")

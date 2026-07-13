@@ -1,5 +1,7 @@
 name: "person"                 # Технический ID (как имя папки)
 title: "Сотрудники"          # Красивое имя для UI и истории
+category: "Кадры"          # Категория для группировки в боте
+database_profile: "database.postgres_llo"  # Профиль БД из main.toml
 
 enabled: true
 

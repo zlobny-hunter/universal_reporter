@@ -39,18 +39,28 @@ JOBS_DIR = os.path.join(BASE_DIR, "jobs")
 def get_connection_for_job(job_name):
     """
     Универсальная фабрика подключений.
-    Динамически ищет конфигурацию БД в main.toml по ключу из секции [jobs].
+    Читает database_profile из config.yaml задачи и ищет конфигурацию БД в main.toml.
     Никакого хардкода структуры секций или типов.
     """
     if not os.path.exists(MAIN_CONFIG_PATH):
         raise FileNotFoundError(f"Критическая ошибка: Главный конфиг не найден: {MAIN_CONFIG_PATH}")
 
-    config = toml.load(MAIN_CONFIG_PATH)
-    jobs_section = config.get("jobs", {})
-    db_profile_key = jobs_section.get(job_name)
+    # Читаем database_profile из config.yaml задачи
+    job_dir = os.path.join(JOBS_DIR, job_name)
+    yaml_path = os.path.join(job_dir, "config.yaml")
+
+    if not os.path.exists(yaml_path):
+        raise FileNotFoundError(f"Критическая ошибка: Конфигурационный файл {yaml_path} не найден!")
+
+    with open(yaml_path, "r", encoding="utf-8") as f:
+        job_config = yaml.safe_load(f)
+
+    db_profile_key = job_config.get("database_profile")
 
     if not db_profile_key:
-        raise ValueError(f"Отчет '{job_name}' не зарегистрирован в секции [jobs] в main.toml")
+        raise ValueError(f"Отчет '{job_name}' не содержит поле database_profile в config.yaml")
+
+    config = toml.load(MAIN_CONFIG_PATH)
 
     # --- ДИНАМИЧЕСКИЙ ПОИСК ПРОФИЛЯ ПО КЛЮЧУ ---
     # Поддерживает как "database.postgres_prod", так и вложенные структуры любой глубины
@@ -135,10 +145,23 @@ def get_connection_for_job(job_name):
 
 
 def get_all_jobs():
-    """ Динамический список задач из центрального TOML """
+    """ Динамический список задач из папки jobs """
     try:
-        config = toml.load(MAIN_CONFIG_PATH)
-        return list(config.get("jobs", {}).keys())
+        jobs = []
+        if os.path.exists(JOBS_DIR):
+            for job_name in os.listdir(JOBS_DIR):
+                job_dir = os.path.join(JOBS_DIR, job_name)
+                if os.path.isdir(job_dir):
+                    yaml_path = os.path.join(job_dir, "config.yaml")
+                    if os.path.exists(yaml_path):
+                        try:
+                            with open(yaml_path, "r", encoding="utf-8") as f:
+                                job_config = yaml.safe_load(f)
+                                if job_config and job_config.get("enabled", True):
+                                    jobs.append(job_name)
+                        except Exception:
+                            pass
+        return jobs
     except Exception:
         return []
 
@@ -445,9 +468,4 @@ def run_job(job_name, user_params=None):
 
 if __name__ == "__main__":
     print("=== Запуск движка отчетов с динамической фабрикой СУБД ===")
-    try:
-        # Тест с передачей параметров (если они требуются вашим .sql скриптам)
-        path = run_job("pharmacy", user_params={"status_id": 1})
-        print(f"[УСПЕХ] Готовый файл находится здесь:\n{path}")
-    except Exception as e:
-        print(f"[ОШИБКА]: {e}")
+    print("Для запуска бота используйте: python bot.py")
