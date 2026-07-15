@@ -7,7 +7,8 @@ import datetime
 import streamlit_authenticator as stauth
 
 from src.main import run_job, get_all_jobs
-from src.utils.config_loader import setup_logging
+from src.utils.config_loader import setup_logging, load_job_config, get_job_title
+from src.utils.db_logger import log_user_run
 
 setup_logging()
 
@@ -144,15 +145,9 @@ else:
     selected_job = st.selectbox("Выберите необходимый отчет из списка:", available_jobs)
     
     # Читаем конфиг выбранного отчета, чтобы узнать, нужны ли ему параметры
-    job_config_path = os.path.join("jobs", selected_job, "config.yaml")
-    has_parameters = False
-    param_decl = {}
-    
-    if os.path.exists(job_config_path):
-        with open(job_config_path, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-            param_decl = cfg.get("parameters", {})
-            has_parameters = bool(param_decl)
+    job_config = load_job_config(selected_job)
+    param_decl = job_config.get("parameters", {})
+    has_parameters = bool(param_decl)
 
     # Контейнер для динамических полей ввода
     ui_params = {}
@@ -198,6 +193,9 @@ else:
     if btn_run:
         with st.spinner(f"Выполняется конвейер для отчета '{selected_job}'..."):
             try:
+                # Получаем заголовок отчета для логирования
+                job_title = get_job_title(selected_job)
+                
                 # Форматируем даты из виджетов Streamlit в строки для SQL
                 formatted_params = {}
                 for k, v in ui_params.items():
@@ -209,15 +207,26 @@ else:
                             formatted_params[k] = v.strftime("%Y-%m-%d 23:59:59")
                     else:
                         formatted_params[k] = v
+                
+                # Логируем начало запуска
+                log_user_run(user_name, user_name, selected_job, job_title, "started", 
+                            formatted_params if has_parameters else {})
 
                 # Передаем параметры (или None, если отчет статический)
                 # Если мы попытаемся передать параметры туда, где их нет, 
                 # оркестратор выкинет ValueError, и мы безопасно покажем её пользователю.
                 run_job(selected_job, external_params=formatted_params if has_parameters else None)
                 
+                # Логируем успешное завершение
+                log_user_run(user_name, user_name, selected_job, job_title, "success", 
+                            formatted_params if has_parameters else {})
+                
                 st.success(f"🎉 Отчет '{selected_job}' успешно выполнен!")
                 st.rerun()
                 
             except Exception as e:
+                # Логируем ошибку
+                log_user_run(user_name, user_name, selected_job, job_title, "error", 
+                            formatted_params if has_parameters else {}, str(e))
                 # Выводим ошибку валидации или СУБД прямо в красивое красное окно UI
                 st.error(f"❌ Ошибка выполнения конвейера: {e}")

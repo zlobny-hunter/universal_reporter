@@ -1,5 +1,6 @@
 import os
 import toml
+import yaml
 import logging
 import logging.config
 
@@ -28,3 +29,47 @@ def load_main_config(config_path: str = "config/main.toml") -> dict:
     
     with open(config_path, "r", encoding="utf-8") as f:
         return toml.load(f)
+
+def load_job_config(job_name: str, jobs_dir: str = None) -> dict:
+    """Загрузка конфигурационного файла конкретного отчета.
+    
+    Args:
+        job_name: Имя папки с отчетом
+        jobs_dir: Путь к папке с отчетами (по умолчанию определяется автоматически)
+    
+    Returns:
+        Словарь с конфигурацией отчета или пустой словарь при ошибке
+    """
+    if jobs_dir is None:
+        # Определяем путь к jobs автоматически
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        if os.path.basename(current_dir) == "src":
+            base_dir = os.path.dirname(current_dir)
+        else:
+            base_dir = current_dir
+        jobs_dir = os.path.join(base_dir, "jobs")
+    
+    yaml_path = os.path.join(jobs_dir, job_name, "config.yaml")
+    
+    if not os.path.exists(yaml_path):
+        return {}
+    
+    try:
+        with open(yaml_path, "r", encoding="utf-8") as f:
+            return yaml.safe_load(f) or {}
+    except Exception as e:
+        logging.warning(f"Не удалось прочитать config.yaml для {job_name}: {e}")
+        return {}
+
+def get_job_title(job_name: str, jobs_dir: str = None) -> str:
+    """Получает заголовок отчета из config.yaml.
+    
+    Args:
+        job_name: Имя папки с отчетом
+        jobs_dir: Путь к папке с отчетами (по умолчанию определяется автоматически)
+    
+    Returns:
+        Заголовок отчета или job_name, если заголовок не найден
+    """
+    config = load_job_config(job_name, jobs_dir)
+    return config.get("title", job_name)

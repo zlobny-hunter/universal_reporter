@@ -7,6 +7,7 @@ import psycopg2
 from datetime import datetime, timedelta
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from src.utils.config_loader import load_job_config
 
 now = datetime.now()
 # === КОСТЫЛЬ СОВМЕСТИМОСТИ ДЛЯ PARAMIKO & SSHTUNNEL ===
@@ -46,14 +47,10 @@ def get_connection_for_job(job_name):
         raise FileNotFoundError(f"Критическая ошибка: Главный конфиг не найден: {MAIN_CONFIG_PATH}")
 
     # Читаем database_profile из config.yaml задачи
-    job_dir = os.path.join(JOBS_DIR, job_name)
-    yaml_path = os.path.join(job_dir, "config.yaml")
-
-    if not os.path.exists(yaml_path):
-        raise FileNotFoundError(f"Критическая ошибка: Конфигурационный файл {yaml_path} не найден!")
-
-    with open(yaml_path, "r", encoding="utf-8") as f:
-        job_config = yaml.safe_load(f)
+    job_config = load_job_config(job_name, JOBS_DIR)
+    
+    if not job_config:
+        raise FileNotFoundError(f"Критическая ошибка: Конфигурационный файл для {job_name} не найден или пуст!")
 
     db_profile_key = job_config.get("database_profile")
 
@@ -152,15 +149,9 @@ def get_all_jobs():
             for job_name in os.listdir(JOBS_DIR):
                 job_dir = os.path.join(JOBS_DIR, job_name)
                 if os.path.isdir(job_dir):
-                    yaml_path = os.path.join(job_dir, "config.yaml")
-                    if os.path.exists(yaml_path):
-                        try:
-                            with open(yaml_path, "r", encoding="utf-8") as f:
-                                job_config = yaml.safe_load(f)
-                                if job_config and job_config.get("enabled", True):
-                                    jobs.append(job_name)
-                        except Exception:
-                            pass
+                    job_config = load_job_config(job_name, JOBS_DIR)
+                    if job_config and job_config.get("enabled", True):
+                        jobs.append(job_name)
         return jobs
     except Exception:
         return []
@@ -271,14 +262,12 @@ def run_job(job_name, user_params=None):
 
     # Строим пути строго на основе глобальной JOBS_DIR
     job_dir = os.path.join(JOBS_DIR, job_name)
-    yaml_path = os.path.join(job_dir, "config.yaml")
-
-    if not os.path.exists(yaml_path):
-        raise FileNotFoundError(f"Критическая ошибка: Конфигурационный файл {yaml_path} не найден!")
 
     # 2. Загрузка конфигурации отчета
-    with open(yaml_path, "r", encoding="utf-8") as f:
-        job_config = yaml.safe_load(f)
+    job_config = load_job_config(job_name, JOBS_DIR)
+    
+    if not job_config:
+        raise FileNotFoundError(f"Критическая ошибка: Конфигурационный файл для {job_name} не найден или пуст!")
 
     if not job_config.get("enabled", True):
         print(f"[WORKER] Генерация отчета '{job_name}' отменена: статус 'enabled: false'")

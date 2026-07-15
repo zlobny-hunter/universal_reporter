@@ -6,6 +6,8 @@ import toml
 import urllib3
 import yaml
 from main import run_job, get_all_jobs, JOBS_DIR
+from src.utils.db_logger import log_user_run
+from src.utils.config_loader import load_job_config, get_job_title
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -52,17 +54,9 @@ def create_categories_keyboard(jobs):
     categories = set()
     
     for job in jobs:
-        job_dir = os.path.join(JOBS_DIR, job)
-        yaml_path = os.path.join(job_dir, "config.yaml")
-        
-        if os.path.exists(yaml_path):
-            try:
-                with open(yaml_path, "r", encoding="utf-8") as f:
-                    job_config = yaml.safe_load(f)
-                    if job_config and "category" in job_config:
-                        categories.add(job_config["category"])
-            except Exception:
-                pass
+        job_config = load_job_config(job, JOBS_DIR)
+        if job_config and "category" in job_config:
+            categories.add(job_config["category"])
     
     if not categories:
         categories.add("Без категории")
@@ -87,23 +81,16 @@ def create_jobs_keyboard(jobs, category):
     inline_keyboard = []
     
     for job in jobs:
-        job_dir = os.path.join(JOBS_DIR, job)
-        yaml_path = os.path.join(job_dir, "config.yaml")
+        job_config = load_job_config(job, JOBS_DIR)
         
         job_title = job
         job_category = "Без категории"
         
-        if os.path.exists(yaml_path):
-            try:
-                with open(yaml_path, "r", encoding="utf-8") as f:
-                    job_config = yaml.safe_load(f)
-                    if job_config:
-                        if "title" in job_config:
-                            job_title = job_config["title"]
-                        if "category" in job_config:
-                            job_category = job_config["category"]
-            except Exception:
-                pass
+        if job_config:
+            if "title" in job_config:
+                job_title = job_config["title"]
+            if "category" in job_config:
+                job_category = job_config["category"]
         
         # Добавляем только задачи из указанной категории
         if job_category == category:
@@ -133,23 +120,16 @@ def create_inline_keyboard(jobs):
     categories = {}
     
     for job in jobs:
-        job_dir = os.path.join(JOBS_DIR, job)
-        yaml_path = os.path.join(job_dir, "config.yaml")
+        job_config = load_job_config(job, JOBS_DIR)
         
         job_title = job
         job_category = "Без категории"  # Категория по умолчанию
         
-        if os.path.exists(yaml_path):
-            try:
-                with open(yaml_path, "r", encoding="utf-8") as f:
-                    job_config = yaml.safe_load(f)
-                    if job_config:
-                        if "title" in job_config:
-                            job_title = job_config["title"]
-                        if "category" in job_config:
-                            job_category = job_config["category"]
-            except Exception:
-                pass
+        if job_config:
+            if "title" in job_config:
+                job_title = job_config["title"]
+            if "category" in job_config:
+                job_category = job_config["category"]
         
         if job_category not in categories:
             categories[job_category] = []
@@ -247,7 +227,7 @@ def process_bot_logic(update):
         
         if data_value.startswith('run:'):
             job_name = data_value.split(':', 1)[-1].strip()
-            execute_job(chat_id, job_name, {})
+            execute_job(chat_id, job_name, {}, callback_user_id, callback_display_name)
         elif data_value.startswith('category:'):
             # Показываем задачи выбранной категории
             category = data_value.split(':', 1)[-1].strip()
@@ -322,24 +302,12 @@ def process_bot_logic(update):
         # =============================
 
         if job_name in valid_jobs:
-            # Инициализация дефолтных значений
-            defined_params = {}
-            require_params = False
             provided_args = tokens[1:]
 
             # Читаем config.yaml отчета
-            job_dir = os.path.join(JOBS_DIR, job_name)
-            yaml_path = os.path.join(job_dir, "config.yaml")
-
-            if os.path.exists(yaml_path):
-                try:
-                    with open(yaml_path, "r", encoding="utf-8") as f:
-                        job_config = yaml.safe_load(f)
-                        if job_config:
-                            defined_params = job_config.get("parameters", {}) or {}
-                            require_params = job_config.get("require_parameters", False)
-                except Exception as ex_yaml:
-                    print(f"[BOT ERROR] Не удалось прочитать config.yaml для {job_name}: {ex_yaml}")
+            job_config = load_job_config(job_name, JOBS_DIR)
+            defined_params = job_config.get("parameters", {}) or {}
+            require_params = job_config.get("require_parameters", False)
 
             param_keys = list(defined_params.keys())
 
@@ -407,7 +375,7 @@ def process_bot_logic(update):
                     if isinstance(defined_params[k], dict):
                         user_params[k] = defined_params[k].get("default")
 
-            execute_job(chat_id, job_name, user_params)
+            execute_job(chat_id, job_name, user_params, user_id, display_name)
         else:
             requests.post(SEND_TEXT_URL,
                           json={"chat_id": chat_id, "text": f"❓ Ошибка: Отчет '{job_name}' не найден в системе."},
@@ -529,7 +497,7 @@ def process_bot_logic(update):
             # Очищаем состояние
             del user_states[user_id]
             
-            execute_job(chat_id, job_name, user_params)
+            execute_job(chat_id, job_name, user_params, user_id, display_name)
         return
     
     # 5. Обработка нажатия на кнопку (текст кнопки с эмодзи)
@@ -541,18 +509,7 @@ def process_bot_logic(update):
         jobs = get_all_jobs()
         found_job = None
         for job in jobs:
-            job_dir = os.path.join(JOBS_DIR, job)
-            yaml_path = os.path.join(job_dir, "config.yaml")
-            
-            job_title = job
-            if os.path.exists(yaml_path):
-                try:
-                    with open(yaml_path, "r", encoding="utf-8") as f:
-                        job_config = yaml.safe_load(f)
-                        if job_config and "title" in job_config:
-                            job_title = job_config["title"]
-                except Exception:
-                    pass
+            job_title = get_job_title(job, JOBS_DIR)
             
             if button_text == job_title:
                 found_job = job
@@ -564,21 +521,9 @@ def process_bot_logic(update):
         
         if found_job:
             # Проверяем, требует ли отчет параметры
-            job_dir = os.path.join(JOBS_DIR, found_job)
-            yaml_path = os.path.join(job_dir, "config.yaml")
-            
-            defined_params = {}
-            require_params = False
-            
-            if os.path.exists(yaml_path):
-                try:
-                    with open(yaml_path, "r", encoding="utf-8") as f:
-                        job_config = yaml.safe_load(f)
-                        if job_config:
-                            defined_params = job_config.get("parameters", {}) or {}
-                            require_params = job_config.get("require_parameters", False)
-                except Exception as e:
-                    print(f"[BOT ERROR] Не удалось прочитать config.yaml: {e}")
+            job_config = load_job_config(found_job, JOBS_DIR)
+            defined_params = job_config.get("parameters", {}) or {}
+            require_params = job_config.get("require_parameters", False)
             
             param_keys = list(defined_params.keys())
             
@@ -610,11 +555,11 @@ def process_bot_logic(update):
                 requests.post(SEND_TEXT_URL, json={"chat_id": chat_id, "text": prompt_text}, headers=HEADERS, verify=False)
             else:
                 # Параметров нет - запускаем сразу
-                execute_job(chat_id, found_job, {})
+                execute_job(chat_id, found_job, {}, user_id, display_name)
             return
 
 
-def execute_job(chat_id, job_name, user_params):
+def execute_job(chat_id, job_name, user_params, user_id=None, user_name=None):
     """Выполняет запуск отчета с заданными параметрами"""
     valid_jobs = get_all_jobs()
     
@@ -625,22 +570,16 @@ def execute_job(chat_id, job_name, user_params):
         return
     
     # Читаем config.yaml отчета
-    job_dir = os.path.join(JOBS_DIR, job_name)
-    yaml_path = os.path.join(job_dir, "config.yaml")
+    job_config = load_job_config(job_name, JOBS_DIR)
+    job_title = job_config.get("title", job_name)
+    
+    # Логируем начало запуска отчета
+    if user_id and user_name:
+        log_user_run(user_id, user_name, job_name, job_title, "started", user_params)
     
     # Инициализация дефолтных значений
-    defined_params = {}
-    require_params = False
-    
-    if os.path.exists(yaml_path):
-        try:
-            with open(yaml_path, "r", encoding="utf-8") as f:
-                job_config = yaml.safe_load(f)
-                if job_config:
-                    defined_params = job_config.get("parameters", {}) or {}
-                    require_params = job_config.get("require_parameters", False)
-        except Exception as ex_yaml:
-            print(f"[BOT ERROR] Не удалось прочитать config.yaml для {job_name}: {ex_yaml}")
+    defined_params = job_config.get("parameters", {}) or {}
+    require_params = job_config.get("require_parameters", False)
     
     param_keys = list(defined_params.keys())
     
@@ -678,6 +617,10 @@ def execute_job(chat_id, job_name, user_params):
             print(f"[DEBUG EXEC] Размер файла на диске: {os.path.getsize(excel_path)} байт")
             file_name = os.path.basename(excel_path)
             print(f"[DEBUG EXEC] Подготовка к отправке файла: {file_name}")
+            
+            # Логируем успешное завершение
+            if user_id and user_name:
+                log_user_run(user_id, user_name, job_name, job_title, "success", full_params)
 
             # Читаем свежие настройки дистрибуции из config.yaml отчета
             send_to_chat = True
@@ -685,19 +628,13 @@ def execute_job(chat_id, job_name, user_params):
             nc_profile = "emias_kgu"
             nc_path = ""
 
-            if os.path.exists(yaml_path):
-                try:
-                    with open(yaml_path, "r", encoding="utf-8") as f:
-                        j_cfg = yaml.safe_load(f) or {}
-                        deliv = j_cfg.get("delivery", {})
-                        send_to_chat = deliv.get("send_to_chat", True)
+            deliv = job_config.get("delivery", {})
+            send_to_chat = deliv.get("send_to_chat", True)
 
-                        nc_cfg = deliv.get("nextcloud", {})
-                        nc_enabled = nc_cfg.get("enabled", False)
-                        nc_profile = nc_cfg.get("profile", "emias_kgu")
-                        nc_path = nc_cfg.get("remote_path", "").strip("/")
-                except Exception as e_cfg:
-                    print(f"[BOT ERROR] Не удалось прочитать delivery-секцию: {e_cfg}")
+            nc_cfg = deliv.get("nextcloud", {})
+            nc_enabled = nc_cfg.get("enabled", False)
+            nc_profile = nc_cfg.get("profile", "emias_kgu")
+            nc_path = nc_cfg.get("remote_path", "").strip("/")
 
             # Формируем информативный текст статуса
             status_text = f"✅ **Отчет '{job_name}' успешно сформирован!**\n"
@@ -755,6 +692,9 @@ def execute_job(chat_id, job_name, user_params):
 
     except Exception as e:
         print(f"[💥 ОШИБКА ГЕНЕРАЦИИ]: {e}")
+        # Логируем ошибку
+        if user_id and user_name:
+            log_user_run(user_id, user_name, job_name, job_title, "error", full_params, str(e))
         requests.post(SEND_TEXT_URL, json={"chat_id": chat_id, "text": f"❌ Ошибка генерации отчета:\n{e}"},
                       headers=HEADERS, verify=False)
 
