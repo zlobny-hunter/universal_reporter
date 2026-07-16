@@ -6,7 +6,7 @@ import yaml
 import datetime
 import streamlit_authenticator as stauth
 
-from src.main import run_job, get_all_jobs
+from src.main import run_job, get_all_jobs, JOBS_DIR
 from src.utils.config_loader import setup_logging, load_job_config, get_job_title
 from src.utils.db_logger import log_user_run
 
@@ -31,6 +31,9 @@ def load_users_from_db():
     # Формируем структуру словаря, которую требует streamlit-authenticator
     credentials = {"usernames": {}}
     for username, name, password_hash in rows:
+        # Пропускаем пользователей без пароля
+        if password_hash is None:
+            continue
         credentials["usernames"][username] = {
             "name": name,
             "password": password_hash
@@ -45,7 +48,8 @@ authenticator = stauth.Authenticate(
     credentials=credentials,
     cookie_name="report_system_cookie",  # Имя куки для запоминания сессии
     key="super_secret_cookie_key",  # Любой случайный ключ для шифрования куки
-    cookie_expiry_days=30  # Сколько дней помнить пользователя
+    cookie_expiry_days=30,  # Сколько дней помнить пользователя
+    auto_hash=True  # Автоматическое хеширование паролей если они не захешированы
 )
 
 # --- 3. ОТРЕНДЕРИТЬ ФОРМУ ВХОДА ---
@@ -71,8 +75,9 @@ elif st.session_state.get('authentication_status') == None:
 # Сценарий В: УСПЕШНЫЙ ВХОД
 elif st.session_state.get('authentication_status') == True:
 
-    # Достаем имя пользователя для приветствия
+    # Достаем имя пользователя и ID для приветствия и логирования
     user_name = st.session_state.get('name', 'Пользователь')
+    user_id = st.session_state.get('username', 'unknown')
 
     # Кнопка "Выйти" в сайдбар
     with st.sidebar:
@@ -84,7 +89,7 @@ elif st.session_state.get('authentication_status') == True:
 st.title("📊 Панель управления системой отчетов v1.0")
 st.markdown("Здесь вы можете отслеживать статус автоматических задач и запускать отчеты вручную.")
 
-DB_PATH = "data/job_status.db"
+DB_PATH = os.path.join(os.getcwd(), "data", "job_status.db")
 
 def load_statuses_from_db():
     """Читает историю запусков из SQLite и возвращает Pandas DataFrame"""
@@ -145,7 +150,7 @@ else:
     selected_job = st.selectbox("Выберите необходимый отчет из списка:", available_jobs)
     
     # Читаем конфиг выбранного отчета, чтобы узнать, нужны ли ему параметры
-    job_config = load_job_config(selected_job)
+    job_config = load_job_config(selected_job, JOBS_DIR)
     param_decl = job_config.get("parameters", {})
     has_parameters = bool(param_decl)
 
@@ -194,7 +199,7 @@ else:
         with st.spinner(f"Выполняется конвейер для отчета '{selected_job}'..."):
             try:
                 # Получаем заголовок отчета для логирования
-                job_title = get_job_title(selected_job)
+                job_title = get_job_title(selected_job, JOBS_DIR)
                 
                 # Форматируем даты из виджетов Streamlit в строки для SQL
                 formatted_params = {}
@@ -209,16 +214,16 @@ else:
                         formatted_params[k] = v
                 
                 # Логируем начало запуска
-                log_user_run(user_name, user_name, selected_job, job_title, "started", 
+                log_user_run(user_id, user_name, selected_job, job_title, "started",
                             formatted_params if has_parameters else {})
 
                 # Передаем параметры (или None, если отчет статический)
-                # Если мы попытаемся передать параметры туда, где их нет, 
+                # Если мы попытаемся передать параметры туда, где их нет,
                 # оркестратор выкинет ValueError, и мы безопасно покажем её пользователю.
-                run_job(selected_job, external_params=formatted_params if has_parameters else None)
-                
+                run_job(selected_job, user_params=formatted_params if has_parameters else None)
+
                 # Логируем успешное завершение
-                log_user_run(user_name, user_name, selected_job, job_title, "success", 
+                log_user_run(user_id, user_name, selected_job, job_title, "success",
                             formatted_params if has_parameters else {})
                 
                 st.success(f"🎉 Отчет '{selected_job}' успешно выполнен!")
@@ -226,7 +231,7 @@ else:
                 
             except Exception as e:
                 # Логируем ошибку
-                log_user_run(user_name, user_name, selected_job, job_title, "error", 
+                log_user_run(user_id, user_name, selected_job, job_title, "error",
                             formatted_params if has_parameters else {}, str(e))
                 # Выводим ошибку валидации или СУБД прямо в красивое красное окно UI
                 st.error(f"❌ Ошибка выполнения конвейера: {e}")
