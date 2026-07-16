@@ -424,7 +424,7 @@ def process_bot_logic(update):
                 is_mentioned = True
                 break
 
-    if "/start" in text_lower or "отчеты" in text_lower or "llo_reports" in text_lower or is_mentioned or not raw_text:
+    if "/start" in text_lower or "отчеты" in text_lower or "киргуду" in text_lower or "llo_reports" in text_lower or is_mentioned or not raw_text:
         jobs = get_all_jobs()
         if jobs:
             menu_text = "📋 **Доступные категории отчетов:**\n\n"

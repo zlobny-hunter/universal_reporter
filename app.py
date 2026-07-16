@@ -14,7 +14,7 @@ setup_logging()
 
 # Настройка конфигурации веб-страницы в браузере
 st.set_page_config(
-    page_title="Универсальный Отчетник v1.0",
+    page_title="Универсальный Отчетник v1.1",
     page_icon="📊",
     layout="wide"
 )

@@ -22,5 +22,12 @@
       <jdbc-url>jdbc:postgresql://srv-dtemiasllop1-pg01.mosgorzdrav.local:5432/llo</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="run_history" uuid="e498d3f3-4a85-425b-a817-09e00ddeb929">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/data/run_history.db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>
