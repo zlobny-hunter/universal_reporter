@@ -1,0 +1,1 @@
+select * from llo.patient_indicator where patient_emias_id = ANY(string_to_array(%(emias_id)s, ','))
