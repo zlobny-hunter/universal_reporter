@@ -98,7 +98,7 @@ DB_PATH = os.path.join(CURRENT_DIR, "data", "job_status.db")
 def load_statuses_from_db():
     """Читает историю запусков из SQLite и возвращает Pandas DataFrame"""
     if not os.path.exists(DB_PATH):
-        return pd.DataFrame(columns=["Отчет", "Последний запуск", "Статус", "Описание ошибки"])
+        return pd.DataFrame(columns=["Отчет", "Последний запуск", "Статус", "Способ запуска", "Пользователь", "Описание ошибки"])
 
     try:
         conn = sqlite3.connect(DB_PATH)
@@ -106,6 +106,11 @@ def load_statuses_from_db():
             SELECT job_name as 'Отчет',
                    last_run as 'Последний запуск',
                    status as 'Статус',
+                   CASE 
+                       WHEN run_type = 'manual' THEN 'Вручную'
+                       ELSE 'Шедулер'
+                   END as 'Способ запуска',
+                   COALESCE(run_user, '-') as 'Пользователь',
                    error_message as 'Описание ошибки'
             FROM job_states
             ORDER BY last_run DESC
@@ -192,6 +197,13 @@ else:
                 raw_list = st.text_input(f"🔢 {p_label} ({p_name}, через запятую):", "101, 102")
                 # Сразу конвертируем в кортеж для SQL
                 ui_params[p_name] = tuple(int(x.strip()) for x in raw_list.split(",") if x.strip().isdigit())
+            
+            elif p_type == "string":
+                default_value = p_info.get("default", "")
+                # Если дефолтное значение - список, преобразуем в строку
+                if isinstance(default_value, list):
+                    default_value = ", ".join(str(x) for x in default_value)
+                ui_params[p_name] = st.text_input(f"📝 {p_label}:", value=default_value)
     else:
         st.success("✨ Этот отчет является статическим. Параметры не требуются.")
 

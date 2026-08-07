@@ -460,13 +460,13 @@ def run_job(job_name, user_params=None):
         delivery_info = handle_delivery(job_config, output_file_path)
 
         # Логируем успешное выполнение
-        log_job_state(job_name, "success", "")
+        log_job_state(job_name, "success", "", run_type="scheduler", run_user=None)
 
         return os.path.abspath(output_file_path), delivery_info
 
     except Exception as err:
         print(f"[💥 WORKER ERROR] Ошибка генерации отчета '{job_name}': {err}")
-        log_job_state(job_name, "error", str(err))
+        log_job_state(job_name, "error", str(err), run_type="scheduler", run_user=None)
         raise err
         # В случае ошибки ничего не возвращаем, будет вызвано исключение
     finally:

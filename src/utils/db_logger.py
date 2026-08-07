@@ -19,7 +19,9 @@ def init_history_db():
                 job_name TEXT PRIMARY KEY,
                 last_run TEXT,
                 status TEXT,
-                error_message TEXT
+                error_message TEXT,
+                run_type TEXT DEFAULT 'scheduler',
+                run_user TEXT
             )
         """)
         cursor.execute("""
@@ -37,7 +39,7 @@ def init_history_db():
         """)
         conn.commit()
 
-def log_job_state(job_name: str, status: str, error_message: str = ""):
+def log_job_state(job_name: str, status: str, error_message: str = "", run_type: str = "scheduler", run_user: str = None):
     """Записывает текущее состояние отчета (для вывода в UI)."""
     try:
         init_history_db()
@@ -46,13 +48,15 @@ def log_job_state(job_name: str, status: str, error_message: str = ""):
         with sqlite3.connect(DB_PATH) as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO job_states (job_name, last_run, status, error_message)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO job_states (job_name, last_run, status, error_message, run_type, run_user)
+                VALUES (?, ?, ?, ?, ?, ?)
                 ON CONFLICT(job_name) DO UPDATE SET
                     last_run = excluded.last_run,
                     status = excluded.status,
-                    error_message = excluded.error_message
-            """, (job_name, now, status, error_message))
+                    error_message = excluded.error_message,
+                    run_type = excluded.run_type,
+                    run_user = excluded.run_user
+            """, (job_name, now, status, error_message, run_type, run_user))
             conn.commit()
         logger.debug(f"Статус отчета '{job_name}' успешно сохранен в SQLite ({status}).")
     except Exception as e:
@@ -76,6 +80,19 @@ def log_user_run(user_id: str, user_name: str, job_name: str, job_title: str,
                 (user_id, user_name, job_name, job_title, run_time, status, parameters, error_message)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """, (str(user_id), user_name, job_name, job_title, now, status, params_json, error_message))
+            
+            # Also update job_states with manual run info
+            cursor.execute("""
+                INSERT INTO job_states (job_name, last_run, status, error_message, run_type, run_user)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(job_name) DO UPDATE SET
+                    last_run = excluded.last_run,
+                    status = excluded.status,
+                    error_message = excluded.error_message,
+                    run_type = excluded.run_type,
+                    run_user = excluded.run_user
+            """, (job_name, now, status, error_message, "manual", user_name))
+            
             conn.commit()
         logger.info(f"Запуск отчета '{job_name}' пользователем '{user_name}' (ID: {user_id}) записан: {status}")
     except Exception as e:

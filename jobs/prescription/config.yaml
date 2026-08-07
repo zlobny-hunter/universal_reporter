@@ -24,7 +24,7 @@ require_parameters: true
 # Настройки проверки данных
 validation:
   allow_empty: false         # Пустые данные запрещены
-  on_empty_action: "alert"          #"allow" "alert"   # Если пусто — паниковать (прервать выполнение)
+  on_empty_action: "allow"          #"allow" "alert"   # Если пусто — паниковать (прервать выполнение)
 
 # Структура Excel-файла
 workbook:

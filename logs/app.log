@@ -1181,3 +1181,53 @@ LINE 1: ...elect * from staff.person where birthday between  :date_star...
 2026-08-05 09:43:46 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.2p1)
 2026-08-05 09:43:46 - paramiko.transport - INFO - Authentication (password) successful!
 2026-08-05 09:43:48 - Utils.DBLogger - INFO - Запуск отчета 'prescription' пользователем 'Admin' (ID: admin) записан: error
+2026-08-07 11:08:42 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:08:43 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:09:01 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:09:29 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:09:29 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:09:29 - Utils.DBLogger - INFO - Запуск отчета 'prescription' пользователем 'Admin' (ID: admin) записан: started
+2026-08-07 11:09:50 - sshtunnel.SSHTunnelForwarder - ERROR - Could not connect to gateway 192.168.220.217:22 : Unable to connect to 192.168.220.217: [WinError 10060] Попытка установить соединение была безуспешной, т.к. от другого компьютера за требуемое время не получен нужный отклик, или было разорвано уже установленное соединение из-за неверного отклика уже подключенного компьютера
+2026-08-07 11:09:50 - Utils.DBLogger - INFO - Запуск отчета 'prescription' пользователем 'Admin' (ID: admin) записан: error
+2026-08-07 11:10:47 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:10:47 - Utils.DBLogger - INFO - Запуск отчета 'prescription' пользователем 'Admin' (ID: admin) записан: started
+2026-08-07 11:10:47 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.2p1)
+2026-08-07 11:10:47 - paramiko.transport - INFO - Authentication (password) successful!
+2026-08-07 11:10:52 - Utils.DBLogger - INFO - Запуск отчета 'prescription' пользователем 'Admin' (ID: admin) записан: error
+2026-08-07 11:12:59 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:12:59 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:12:59 - Utils.DBLogger - INFO - Запуск отчета 'prescription' пользователем 'Admin' (ID: admin) записан: started
+2026-08-07 11:12:59 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.2p1)
+2026-08-07 11:12:59 - paramiko.transport - INFO - Authentication (password) successful!
+2026-08-07 11:13:01 - Utils.DBLogger - INFO - Запуск отчета 'prescription' пользователем 'Admin' (ID: admin) записан: error
+2026-08-07 11:14:05 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:14:05 - Utils.DBLogger - INFO - Запуск отчета 'prescription' пользователем 'Admin' (ID: admin) записан: started
+2026-08-07 11:14:05 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.2p1)
+2026-08-07 11:14:05 - paramiko.transport - INFO - Authentication (password) successful!
+2026-08-07 11:14:07 - Utils.DBLogger - INFO - Запуск отчета 'prescription' пользователем 'Admin' (ID: admin) записан: success
+2026-08-07 11:14:07 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:21:23 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:21:23 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:21:40 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:21:40 - Utils.DBLogger - ERROR - Не удалось записать историю запуска пользователя: table job_states has no column named run_type
+2026-08-07 11:21:49 - sshtunnel.SSHTunnelForwarder - ERROR - Could not connect to gateway 192.168.220.217:22 : Unable to connect to 192.168.220.217: [WinError 10053] Программа на вашем хост-компьютере разорвала установленное подключение
+2026-08-07 11:21:49 - Utils.DBLogger - ERROR - Не удалось записать историю запуска пользователя: table job_states has no column named run_type
+2026-08-07 11:21:55 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:21:55 - Utils.DBLogger - ERROR - Не удалось записать историю запуска пользователя: table job_states has no column named run_type
+2026-08-07 11:21:55 - paramiko.transport - INFO - Connected (version 2.0, client OpenSSH_8.2p1)
+2026-08-07 11:21:55 - paramiko.transport - INFO - Authentication (password) successful!
+2026-08-07 11:21:57 - Utils.DBLogger - ERROR - Не удалось записать статус отчета в SQLite: table job_states has no column named run_type
+2026-08-07 11:21:57 - Utils.DBLogger - ERROR - Не удалось записать историю запуска пользователя: table job_states has no column named run_type
+2026-08-07 11:21:57 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:22:02 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:22:02 - py.warnings - WARNING - C:\Users\Boris\work\py\universal_reporter\.venv\Lib\site-packages\jwt\api_jwt.py:368: InsecureKeyLengthWarning: The HMAC key is 8 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  decoded = self.decode_complete(
+
+2026-08-07 11:22:02 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:29:24 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:29:24 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:29:24 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:29:29 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:29:32 - root - INFO - Логирование успешно инициализировано.
+2026-08-07 11:29:32 - Utils.DBLogger - ERROR - Не удалось записать историю запуска пользователя: table job_states has no column named run_type
+2026-08-07 11:29:42 - Utils.DBLogger - ERROR - Не удалось записать историю запуска пользователя: table job_states has no column named run_type
