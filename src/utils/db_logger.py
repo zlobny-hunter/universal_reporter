@@ -4,7 +4,10 @@ import logging
 from datetime import datetime
 
 logger = logging.getLogger("Utils.DBLogger")
-DB_PATH = "data/run_history.db"
+# Определяем путь к БД относительно расположения этого файла
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(CURRENT_DIR))
+DB_PATH = os.path.join(BASE_DIR, "data", "job_status.db")
 
 def init_history_db():
     """Создает таблицу истории запусков, если её нет."""

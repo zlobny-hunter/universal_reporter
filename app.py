@@ -8,9 +8,11 @@ import streamlit_authenticator as stauth
 
 from src.main import run_job, get_all_jobs, JOBS_DIR
 from src.utils.config_loader import setup_logging, load_job_config, get_job_title
-from src.utils.db_logger import log_user_run
+from src.utils.db_logger import log_user_run, init_history_db
 
 setup_logging()
+# Инициализируем БД для истории запусков
+init_history_db()
 
 # Настройка конфигурации веб-страницы в браузере
 st.set_page_config(
@@ -86,26 +88,27 @@ elif st.session_state.get('authentication_status') == True:
         st.write("---")
 
 
-st.title("📊 Панель управления системой отчетов v1.0")
+st.title("📊 Панель управления системой отчетов v1.1")
 st.markdown("Здесь вы можете отслеживать статус автоматических задач и запускать отчеты вручную.")
 
-DB_PATH = os.path.join(os.getcwd(), "data", "job_status.db")
+# Определяем путь к БД относительно расположения файла
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(CURRENT_DIR, "data", "job_status.db")
 
 def load_statuses_from_db():
     """Читает историю запусков из SQLite и возвращает Pandas DataFrame"""
     if not os.path.exists(DB_PATH):
         return pd.DataFrame(columns=["Отчет", "Последний запуск", "Статус", "Описание ошибки"])
-    
+
     try:
         conn = sqlite3.connect(DB_PATH)
         query = """
-            SELECT job_name as 'Отчет', 
-                   job_title as 'Полное имя отчета',
-                   run_time as 'Последний запуск', 
-                   status as 'Статус', 
+            SELECT job_name as 'Отчет',
+                   last_run as 'Последний запуск',
+                   status as 'Статус',
                    error_message as 'Описание ошибки'
-            FROM job_runs
-            ORDER BY run_time DESC
+            FROM job_states
+            ORDER BY last_run DESC
         """
         df = pd.read_sql(query, conn)
         conn.close()
@@ -220,13 +223,47 @@ else:
                 # Передаем параметры (или None, если отчет статический)
                 # Если мы попытаемся передать параметры туда, где их нет,
                 # оркестратор выкинет ValueError, и мы безопасно покажем её пользователю.
-                run_job(selected_job, user_params=formatted_params if has_parameters else None)
+                result = run_job(selected_job, user_params=formatted_params if has_parameters else None)
+
+                # run_job теперь возвращает кортеж (output_file, delivery_info)
+                if isinstance(result, tuple):
+                    output_file, delivery_info = result
+                else:
+                    output_file = result
+                    delivery_info = []
 
                 # Логируем успешное завершение
                 log_user_run(user_id, user_name, selected_job, job_title, "success",
                             formatted_params if has_parameters else {})
-                
+
                 st.success(f"🎉 Отчет '{selected_job}' успешно выполнен!")
+
+                # Отображаем информацию о доставке
+                if delivery_info:
+                    st.subheader("📤 Результаты доставки")
+                    for delivery in delivery_info:
+                        delivery_type = delivery.get("type", "unknown")
+                        status = delivery.get("status", "unknown")
+
+                        if status == "success":
+                            if delivery_type == "local":
+                                st.success(f"📁 Локальное сохранение: {delivery.get('path')}")
+                            elif delivery_type == "nextcloud":
+                                st.success(f"☁️ Nextcloud [{delivery.get('profile')}]: {delivery.get('path')}")
+                            elif delivery_type == "mail":
+                                st.info("📧 Почтовая рассылка отправлена")
+                        else:
+                            error = delivery.get("error", "Неизвестная ошибка")
+                            st.error(f"❌ {delivery_type.upper()}: {error}")
+
+                # Ссылка на скачивание файла
+                st.download_button(
+                    label="📥 Скачать отчет",
+                    data=open(output_file, "rb").read(),
+                    file_name=os.path.basename(output_file),
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+
                 st.rerun()
                 
             except Exception as e:

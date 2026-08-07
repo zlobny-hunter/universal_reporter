@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from src.utils.config_loader import load_job_config
+from src.utils.db_logger import log_job_state
 
 now = datetime.now()
 # === КОСТЫЛЬ СОВМЕСТИМОСТИ ДЛЯ PARAMIKO & SSHTUNNEL ===
@@ -160,10 +161,13 @@ def get_all_jobs():
 def handle_delivery(job_config, file_path):
     """
     Блок дистрибуции отчета на основе секции delivery в индивидуальном config.yaml
+    Возвращает список с информацией о доставке
     """
     delivery = job_config.get("delivery", {})
     if not delivery:
-        return
+        return []
+
+    delivery_info = []
 
     # Локальное сохранение/архивирование
     local_cfg = delivery.get("local", {})
@@ -173,14 +177,18 @@ def handle_delivery(job_config, file_path):
             try:
                 os.makedirs(target_dir, exist_ok=True)
                 import shutil
-                shutil.copy(file_path, os.path.join(target_dir, os.path.basename(file_path)))
+                target_path = os.path.join(target_dir, os.path.basename(file_path))
+                shutil.copy(file_path, target_path)
                 print(f"[DELIVERY] Файл успешно скопирован в локальный архив: {target_dir}")
+                delivery_info.append({"type": "local", "path": target_path, "status": "success"})
             except Exception as e:
                 print(f"[💥 DELIVERY ERROR] Локальное архивирование сорвалось: {e}")
+                delivery_info.append({"type": "local", "error": str(e), "status": "failed"})
 
     # Интеграция с внешними сервисами доставки при необходимости настраивается здесь
     if delivery.get("mail", {}).get("enabled"):
         print("[DELIVERY] Внешняя рассылка Mail активна (параметры из main.toml)...")
+        delivery_info.append({"type": "mail", "status": "enabled"})
 
     # Внешняя выгрузка в Nextcloud (с поддержкой нескольких профилей)
     nc_config = delivery.get("nextcloud", {})
@@ -195,7 +203,8 @@ def handle_delivery(job_config, file_path):
             nc_delivery_all = global_config.get("delivery", {}).get("nextcloud", {})
         except Exception as e:
             print(f"[💥 NEXTCLOUD ERROR] Не удалось прочитать main.toml: {e}")
-            return
+            delivery_info.append({"type": "nextcloud", "error": str(e), "status": "failed"})
+            return delivery_info
 
         # Определяем, какой профиль затребован отчетом (по умолчанию covid)
         profile_name = nc_config.get("profile", "covid")
@@ -204,7 +213,8 @@ def handle_delivery(job_config, file_path):
 
         if not nc_global:
             print(f"[💥 NEXTCLOUD ERROR] Профиль '{profile_name}' не найден в конфигурации main.toml!")
-            return
+            delivery_info.append({"type": "nextcloud", "profile": profile_name, "error": "Profile not found", "status": "failed"})
+            return delivery_info
 
         server_url = nc_global.get("server_url", "").rstrip("/")
         username = nc_global.get("username")
@@ -216,7 +226,8 @@ def handle_delivery(job_config, file_path):
 
         if not server_url or not username or not password:
             print(f"[💥 NEXTCLOUD ERROR] В профиле '{profile_name}' отсутствуют настройки подключения")
-            return
+            delivery_info.append({"type": "nextcloud", "profile": profile_name, "error": "Missing credentials", "status": "failed"})
+            return delivery_info
 
         # 2. Формируем WebDAV URL с безопасным кодированием кириллицы и пробелов
         import urllib.parse
@@ -246,12 +257,18 @@ def handle_delivery(job_config, file_path):
             if response.status_code in [201, 204]:
                 path_log = f"{remote_path}/{file_name}" if remote_path else file_name
                 print(f"[✅ NEXTCLOUD SUCCESS] [{profile_name}] Файл успешно загружен: {path_log}")
+                delivery_info.append({"type": "nextcloud", "profile": profile_name, "path": path_log, "status": "success"})
             else:
-                print(
-                    f"[💥 NEXTCLOUD ERROR] [{profile_name}] Ошибка загрузки (Код: {response.status_code}): {response.text}")
+                error_msg = f"Ошибка загрузки (Код: {response.status_code}): {response.text}"
+                print(f"[💥 NEXTCLOUD ERROR] [{profile_name}] {error_msg}")
+                delivery_info.append({"type": "nextcloud", "profile": profile_name, "error": error_msg, "status": "failed"})
 
         except Exception as n_ex:
-            print(f"[💥 NEXTCLOUD CRITICAL ERROR] [{profile_name}] Ошибка при передаче данных: {n_ex}")
+            error_msg = f"Ошибка при передаче данных: {n_ex}"
+            print(f"[💥 NEXTCLOUD CRITICAL ERROR] [{profile_name}] {error_msg}")
+            delivery_info.append({"type": "nextcloud", "profile": profile_name, "error": error_msg, "status": "failed"})
+
+    return delivery_info
 
 
 def run_job(job_name, user_params=None):
@@ -271,7 +288,7 @@ def run_job(job_name, user_params=None):
 
     if not job_config.get("enabled", True):
         print(f"[WORKER] Генерация отчета '{job_name}' отменена: статус 'enabled: false'")
-        return None
+        return None, []
 
     # --- УМНЫЙ И БЕЗОПАСНЫЙ СБОР ПАРАМЕТРОВ ---
     defined_params = job_config.get("parameters", {}) or {}
@@ -440,13 +457,18 @@ def run_job(job_name, user_params=None):
         print(f"[EXCEL] Книга Excel успешно сформирована: {output_file_path}")
 
         # Локальная или облачная дистрибуция готового файла
-        handle_delivery(job_config, output_file_path)
+        delivery_info = handle_delivery(job_config, output_file_path)
 
-        return os.path.abspath(output_file_path)
+        # Логируем успешное выполнение
+        log_job_state(job_name, "success", "")
+
+        return os.path.abspath(output_file_path), delivery_info
 
     except Exception as err:
         print(f"[💥 WORKER ERROR] Ошибка генерации отчета '{job_name}': {err}")
+        log_job_state(job_name, "error", str(err))
         raise err
+        # В случае ошибки ничего не возвращаем, будет вызвано исключение
     finally:
         cursor.close()
         conn.close()

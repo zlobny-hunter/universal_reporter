@@ -404,7 +404,7 @@ def process_bot_logic(update):
         jobs = get_all_jobs()
         inline_keyboard = create_categories_keyboard(jobs)
         
-        menu_text = "📋 **Доступные категории отчетов:**\n\nВыберите категорию для просмотра отчетов:"
+        menu_text = "📋 **Выберите категорию для просмотра отчетов:**"
         
         payload = {
             "chat_id": chat_id,
@@ -427,8 +427,7 @@ def process_bot_logic(update):
     if "/start" in text_lower or "отчеты" in text_lower or "киргуду" in text_lower or "llo_reports" in text_lower or is_mentioned or not raw_text:
         jobs = get_all_jobs()
         if jobs:
-            menu_text = "📋 **Доступные категории отчетов:**\n\n"
-            menu_text += "Выберите категорию для просмотра отчетов:\n\n"
+            menu_text = "📋 **Выберите категорию для просмотра отчетов:**"
             
             inline_keyboard = create_categories_keyboard(jobs)
             
@@ -549,7 +548,8 @@ def process_bot_logic(update):
                     f"📝 **Ввод параметров для отчета '{found_job}'**\n\n"
                     f"Параметр {1} из {len(param_keys)}: **{param_label}**\n"
                     f"Тип: `{param_type}`, По умолчанию: `{param_default}`\n\n"
-                    f"Введите значение (или отправьте пустое сообщение для использования значения по умолчанию):"
+                    f"Введите значение (или отправьте пустое сообщение для использования значения по умолчанию).\n"
+                    f"Для отмены введите /cancel"
                 )
                 
                 requests.post(SEND_TEXT_URL, json={"chat_id": chat_id, "text": prompt_text}, headers=HEADERS, verify=False)
@@ -610,7 +610,14 @@ def execute_job(chat_id, job_name, user_params, user_id=None, user_name=None):
 
     try:
         print(f"[DEBUG EXEC] Вызываем run_job('{job_name}', user_params={full_params})...")
-        excel_path = run_job(job_name, user_params=full_params)
+        result = run_job(job_name, user_params=full_params)
+
+        # run_job теперь возвращает кортеж (output_file, delivery_info)
+        if isinstance(result, tuple):
+            excel_path, delivery_info = result
+        else:
+            excel_path = result
+            delivery_info = []
 
         print(f"[DEBUG EXEC] Функция run_job вернула значение: '{excel_path}'")
         if excel_path and os.path.exists(excel_path):

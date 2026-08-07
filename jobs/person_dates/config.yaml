@@ -1,7 +1,7 @@
 name: "person_dates"
 title: "Сотрудники c датами"          # Красивое имя для UI и истории
 category: "Кадры"          # Категория для группировки в боте
-database_profile: "database.postgres_llo"  # Профиль БД из main.toml
+database_profile: "database.postgres_151"  # Профиль БД из main.toml
 
 enabled: true
 #schedule: "interval:1" # <--- Запуск каждую минуту для теста
@@ -61,11 +61,11 @@ parameters:
   date_start:
     type: "date"
     default: "minus_7_days"  # Для автозапуска: брать дату неделю назад
-    label: "Дата начала периода"
+    label: "Дата начала периода, формат YYYY-MM-DD"
   date_end:
     type: "date"
     default: "today"         # Для автозапуска: текущий день
-    label: "Дата окончания периода"
+    label: "Дата окончания периода, формат YYYY-MM-DD"
   #recipe_list:
   #  type: "int_list"
   #  default: [101, 102, 105] # Значения по умолчанию для шедулера
