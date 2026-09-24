@@ -214,7 +214,7 @@ def process_bot_logic(update):
             deny_text = (
                 f"❌ Доступ ограничен\n\n"
                 f"Учетная запись '{callback_display_name}' не активирована.\n"
-                f"Заявка зарегистрирована автоматически. Обратитесь к администратору."
+                f"Заявка зарегистрирована автоматически. Обратитесь к администратору для активации."
             )
             requests.post(SEND_TEXT_URL, json={"chat_id": chat_id, "text": deny_text}, headers=HEADERS, verify=False)
             return
