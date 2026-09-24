@@ -418,8 +418,9 @@ def process_bot_logic(update):
     # 5. Вывод главного меню со списком доступных отчетов
     text_lower = raw_text.lower()
     is_mentioned = False
-    if 'mentioned_users' in update:
-        for user in update['mentioned_users']:
+    mentioned_list = update.get('mentioned_users')
+    if mentioned_list:  # Проверяет, что список существует и он не None / не пустой
+        for user in mentioned_list:
             if user.get('login') == 'yndx-mssngr-ropgqhppgl-bot' or user.get('display_name') == 'LLO_reports':
                 is_mentioned = True
                 break
