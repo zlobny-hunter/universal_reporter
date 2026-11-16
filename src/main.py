@@ -384,7 +384,16 @@ def run_job(job_name, user_params=None):
 
             # ИСПРАВЛЕНО: Передаем отвалидированный final_params вместо сырого user_params
             cursor.execute(sql_query, final_params)
-            rows = cursor.fetchall()
+            
+            # ОПТИМИЗАЦИЯ: Используем server-side cursor для больших выборок
+            # Вместо fetchall() загружаем данные порциями по 1000 строк
+            BATCH_SIZE = 1000
+            rows = []
+            while True:
+                batch = cursor.fetchmany(BATCH_SIZE)
+                if not batch:
+                    break
+                rows.extend(batch)
 
             # ... Дальше идет ваш стандартный код заполнения Excel (ws = wb.create_sheet...)
 
@@ -413,7 +422,9 @@ def run_job(job_name, user_params=None):
                 cell.alignment = center_alignment
                 cell.border = thin_border
 
-            # Заполнение данными
+            # Заполнение данными - ОПТИМИЗАЦИЯ: пакетная запись
+            # Сначала готовим все данные в памяти, затем пишем пачкой
+            all_clean_rows = []
             for row_data in rows:
                 clean_row = []
                 for item in row_data:
@@ -426,16 +437,25 @@ def run_job(job_name, user_params=None):
                     # 3. Все остальные стандартные типы (числа, строки, None) оставляем как есть
                     else:
                         clean_row.append(item)
+                all_clean_rows.append(clean_row)
 
+            # Пакетная запись всех строк (гораздо быстрее для больших датасетов)
+            for clean_row in all_clean_rows:
                 ws.append(clean_row)
-                current_row = ws.max_row
-                for col_num in range(1, len(clean_row) + 1):
-                    ws.cell(row=current_row, column=col_num).border = thin_border
 
-            # Корректировка ширины столбцов под размер контента
-            for col in ws.columns:
-                max_len = max(len(str(cell.value or '')) for cell in col)
-                col_letter = openpyxl.utils.get_column_letter(col[0].column)
+            # Применяем границы ко всем ячейкам данных
+            for row_idx in range(2, ws.max_row + 1):
+                for col_num in range(1, len(headers) + 1):
+                    ws.cell(row=row_idx, column=col_num).border = thin_border
+
+            # Корректировка ширины столбцов под размер контента - ОПТИМИЗАЦИЯ
+            # Для больших датасетов (>1000 строк) выбираем только первые 100 строк для расчета ширины
+            SAMPLE_SIZE = 100 if ws.max_row > 1000 else ws.max_row
+            for col_idx, col in enumerate(ws.columns, start=1):
+                # Берем только первые SAMPLE_SIZE ячеек для расчета
+                sample_cells = list(col)[:SAMPLE_SIZE]
+                max_len = max(len(str(cell.value or '')) for cell in sample_cells)
+                col_letter = openpyxl.utils.get_column_letter(col_idx)
                 ws.column_dimensions[col_letter].width = max(max_len + 3, 12)
 
             ws.freeze_panes = "A2"

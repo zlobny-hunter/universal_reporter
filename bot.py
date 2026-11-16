@@ -673,7 +673,7 @@ def execute_job(chat_id, job_name, user_params, user_id=None, user_name=None):
                         data=payload,
                         files=files,
                         verify=False,
-                        timeout=60
+                        timeout=300
                     )
 
                 print(f"[DEBUG EXEC] Ответ Яндекса: Статус {res.status_code}, Текст: {res.text}")
