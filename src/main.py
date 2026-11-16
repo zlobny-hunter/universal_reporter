@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import toml
 import yaml  # Для чтения индивидуальных config.yaml отчетов
 import sqlite3
@@ -118,7 +119,8 @@ def get_connection_for_job(job_name):
                     user=db_config.get("user"),
                     password=db_config.get("password"),
                     database=db_config.get("database"),
-                    connect_timeout=10
+                    connect_timeout=10,
+                    cursor_factory=psycopg2.extensions.cursor  # Явно указываем стандартный cursor
                 )
                 return conn, tunnel
             except Exception as e:
@@ -135,7 +137,8 @@ def get_connection_for_job(job_name):
                 user=db_config.get("user"),
                 password=db_config.get("password"),
                 database=db_config.get("database"),
-                connect_timeout=10
+                connect_timeout=10,
+                cursor_factory=psycopg2.extensions.cursor  # Явно указываем стандартный cursor
             )
             return conn, None
 
@@ -383,17 +386,21 @@ def run_job(job_name, user_params=None):
             print(f"[ENGINE] Сбор данных для листа '{sheet_name}' (SQL: {sql_file_name})...")
 
             # ИСПРАВЛЕНО: Передаем отвалидированный final_params вместо сырого user_params
-            cursor.execute(sql_query, final_params)
+            # Если параметры пусты, не передаем их (psycopg2 не принимает пустой dict)
+            if final_params:
+                cursor.execute(sql_query, final_params)
+            else:
+                cursor.execute(sql_query)
             
-            # ОПТИМИЗАЦИЯ: Используем server-side cursor для больших выборок
-            # Вместо fetchall() загружаем данные порциями по 1000 строк
-            BATCH_SIZE = 1000
-            rows = []
-            while True:
-                batch = cursor.fetchmany(BATCH_SIZE)
-                if not batch:
-                    break
-                rows.extend(batch)
+            # ВРЕМЕННО: Используем fetchall() для диагностики ошибки "dict is not a sequence"
+            # Named cursor с fetchmany() может некорректно работать с сложными SQL (CTE, GROUP BY)
+            rows = cursor.fetchall()
+            
+            # DEBUG: Проверяем тип возвращаемых данных
+            print(f"[DEBUG] Тип rows: {type(rows)}")
+            if rows:
+                print(f"[DEBUG] Тип первой строки: {type(rows[0])}")
+                print(f"[DEBUG] Первая строка: {rows[0]}")
 
             # ... Дальше идет ваш стандартный код заполнения Excel (ws = wb.create_sheet...)
 
@@ -485,7 +492,9 @@ def run_job(job_name, user_params=None):
         return os.path.abspath(output_file_path), delivery_info
 
     except Exception as err:
+        import traceback
         print(f"[💥 WORKER ERROR] Ошибка генерации отчета '{job_name}': {err}")
+        print(f"[FULL TRACEBACK]:\n{traceback.format_exc()}")
         log_job_state(job_name, "error", str(err), run_type="scheduler", run_user=None)
         raise err
         # В случае ошибки ничего не возвращаем, будет вызвано исключение
