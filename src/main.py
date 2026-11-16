@@ -392,15 +392,7 @@ def run_job(job_name, user_params=None):
             else:
                 cursor.execute(sql_query)
             
-            # ВРЕМЕННО: Используем fetchall() для диагностики ошибки "dict is not a sequence"
-            # Named cursor с fetchmany() может некорректно работать с сложными SQL (CTE, GROUP BY)
             rows = cursor.fetchall()
-            
-            # DEBUG: Проверяем тип возвращаемых данных
-            print(f"[DEBUG] Тип rows: {type(rows)}")
-            if rows:
-                print(f"[DEBUG] Тип первой строки: {type(rows[0])}")
-                print(f"[DEBUG] Первая строка: {rows[0]}")
 
             # ... Дальше идет ваш стандартный код заполнения Excel (ws = wb.create_sheet...)
 
@@ -487,7 +479,7 @@ def run_job(job_name, user_params=None):
         delivery_info = handle_delivery(job_config, output_file_path)
 
         # Логируем успешное выполнение
-        log_job_state(job_name, "success", "", run_type="scheduler", run_user=None)
+        log_job_state(job_name, "success", "", run_type="scheduler", run_user=None, parameters=final_params)
 
         return os.path.abspath(output_file_path), delivery_info
 
@@ -495,7 +487,7 @@ def run_job(job_name, user_params=None):
         import traceback
         print(f"[💥 WORKER ERROR] Ошибка генерации отчета '{job_name}': {err}")
         print(f"[FULL TRACEBACK]:\n{traceback.format_exc()}")
-        log_job_state(job_name, "error", str(err), run_type="scheduler", run_user=None)
+        log_job_state(job_name, "error", str(err), run_type="scheduler", run_user=None, parameters=final_params)
         raise err
         # В случае ошибки ничего не возвращаем, будет вызвано исключение
     finally:

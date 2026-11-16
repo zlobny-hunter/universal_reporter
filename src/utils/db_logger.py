@@ -21,9 +21,16 @@ def init_history_db():
                 status TEXT,
                 error_message TEXT,
                 run_type TEXT DEFAULT 'scheduler',
-                run_user TEXT
+                run_user TEXT,
+                parameters TEXT
             )
         """)
+        # Add parameters column if table exists without it (for existing databases)
+        try:
+            cursor.execute("ALTER TABLE job_states ADD COLUMN parameters TEXT")
+        except sqlite3.OperationalError:
+            # Column already exists, ignore error
+            pass
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS user_run_history (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,24 +46,29 @@ def init_history_db():
         """)
         conn.commit()
 
-def log_job_state(job_name: str, status: str, error_message: str = "", run_type: str = "scheduler", run_user: str = None):
+def log_job_state(job_name: str, status: str, error_message: str = "", run_type: str = "scheduler", run_user: str = None, parameters: dict = None):
     """Записывает текущее состояние отчета (для вывода в UI)."""
     try:
         init_history_db()
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
+        # Convert parameters dict to JSON string for storage
+        import json
+        params_json = json.dumps(parameters) if parameters else "{}"
+        
         with sqlite3.connect(DB_PATH) as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO job_states (job_name, last_run, status, error_message, run_type, run_user)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO job_states (job_name, last_run, status, error_message, run_type, run_user, parameters)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(job_name) DO UPDATE SET
                     last_run = excluded.last_run,
                     status = excluded.status,
                     error_message = excluded.error_message,
                     run_type = excluded.run_type,
-                    run_user = excluded.run_user
-            """, (job_name, now, status, error_message, run_type, run_user))
+                    run_user = excluded.run_user,
+                    parameters = excluded.parameters
+            """, (job_name, now, status, error_message, run_type, run_user, params_json))
             conn.commit()
         logger.debug(f"Статус отчета '{job_name}' успешно сохранен в SQLite ({status}).")
     except Exception as e:
@@ -83,15 +95,16 @@ def log_user_run(user_id: str, user_name: str, job_name: str, job_title: str,
             
             # Also update job_states with manual run info
             cursor.execute("""
-                INSERT INTO job_states (job_name, last_run, status, error_message, run_type, run_user)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO job_states (job_name, last_run, status, error_message, run_type, run_user, parameters)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(job_name) DO UPDATE SET
                     last_run = excluded.last_run,
                     status = excluded.status,
                     error_message = excluded.error_message,
                     run_type = excluded.run_type,
-                    run_user = excluded.run_user
-            """, (job_name, now, status, error_message, "manual", user_name))
+                    run_user = excluded.run_user,
+                    parameters = excluded.parameters
+            """, (job_name, now, status, error_message, "manual", user_name, params_json))
             
             conn.commit()
         logger.info(f"Запуск отчета '{job_name}' пользователем '{user_name}' (ID: {user_id}) записан: {status}")
