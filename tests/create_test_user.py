@@ -2,7 +2,7 @@ import sqlite3
 import bcrypt
 
 # Путь к БД
-DB_PATH = "data/job_status.db"
+DB_PATH = "../data/job_status.db"
 
 def create_test_user():
     """Создает тестового пользователя с захешированным паролелем."""

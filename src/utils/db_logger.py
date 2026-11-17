@@ -16,7 +16,8 @@ def init_history_db():
         cursor = conn.cursor()
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS job_states (
-                job_name TEXT PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                job_name TEXT,
                 last_run TEXT,
                 status TEXT,
                 error_message TEXT,
@@ -25,12 +26,42 @@ def init_history_db():
                 parameters TEXT
             )
         """)
-        # Add parameters column if table exists without it (for existing databases)
+        # Add parameters column if table exists without it (for existing databases
         try:
             cursor.execute("ALTER TABLE job_states ADD COLUMN parameters TEXT")
         except sqlite3.OperationalError:
             # Column already exists, ignore error
             pass
+        
+        # Migrate old schema (job_name as PRIMARY KEY) to new schema (id as PRIMARY KEY)
+        try:
+            cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='job_states'")
+            table_sql = cursor.fetchone()
+            if table_sql and 'job_name TEXT PRIMARY KEY' in table_sql[0]:
+                print("[DB MIGRATION] Migrating job_states table from old schema to new schema...")
+                cursor.execute("ALTER TABLE job_states RENAME TO job_states_old")
+                cursor.execute("""
+                    CREATE TABLE job_states (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        job_name TEXT,
+                        last_run TEXT,
+                        status TEXT,
+                        error_message TEXT,
+                        run_type TEXT DEFAULT 'scheduler',
+                        run_user TEXT,
+                        parameters TEXT
+                    )
+                """)
+                cursor.execute("""
+                    INSERT INTO job_states (job_name, last_run, status, error_message, run_type, run_user, parameters)
+                    SELECT job_name, last_run, status, error_message, run_type, run_user, parameters
+                    FROM job_states_old
+                """)
+                cursor.execute("DROP TABLE job_states_old")
+                conn.commit()
+                print("[DB MIGRATION] Migration completed successfully.")
+        except Exception as e:
+            print(f"[DB MIGRATION] Migration not needed or failed: {e}")
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS user_run_history (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -61,13 +92,6 @@ def log_job_state(job_name: str, status: str, error_message: str = "", run_type:
             cursor.execute("""
                 INSERT INTO job_states (job_name, last_run, status, error_message, run_type, run_user, parameters)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(job_name) DO UPDATE SET
-                    last_run = excluded.last_run,
-                    status = excluded.status,
-                    error_message = excluded.error_message,
-                    run_type = excluded.run_type,
-                    run_user = excluded.run_user,
-                    parameters = excluded.parameters
             """, (job_name, now, status, error_message, run_type, run_user, params_json))
             conn.commit()
         logger.debug(f"Статус отчета '{job_name}' успешно сохранен в SQLite ({status}).")
@@ -97,13 +121,6 @@ def log_user_run(user_id: str, user_name: str, job_name: str, job_title: str,
             cursor.execute("""
                 INSERT INTO job_states (job_name, last_run, status, error_message, run_type, run_user, parameters)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(job_name) DO UPDATE SET
-                    last_run = excluded.last_run,
-                    status = excluded.status,
-                    error_message = excluded.error_message,
-                    run_type = excluded.run_type,
-                    run_user = excluded.run_user,
-                    parameters = excluded.parameters
             """, (job_name, now, status, error_message, "manual", user_name, params_json))
             
             conn.commit()

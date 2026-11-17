@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from src.utils.config_loader import load_job_config
-from src.utils.db_logger import log_job_state
 
 now = datetime.now()
 # === КОСТЫЛЬ СОВМЕСТИМОСТИ ДЛЯ PARAMIKO & SSHTUNNEL ===
@@ -478,16 +477,12 @@ def run_job(job_name, user_params=None):
         # Локальная или облачная дистрибуция готового файла
         delivery_info = handle_delivery(job_config, output_file_path)
 
-        # Логируем успешное выполнение
-        log_job_state(job_name, "success", "", run_type="scheduler", run_user=None, parameters=final_params)
-
         return os.path.abspath(output_file_path), delivery_info
 
     except Exception as err:
         import traceback
         print(f"[💥 WORKER ERROR] Ошибка генерации отчета '{job_name}': {err}")
         print(f"[FULL TRACEBACK]:\n{traceback.format_exc()}")
-        log_job_state(job_name, "error", str(err), run_type="scheduler", run_user=None, parameters=final_params)
         raise err
         # В случае ошибки ничего не возвращаем, будет вызвано исключение
     finally:

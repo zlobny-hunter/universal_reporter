@@ -18,7 +18,7 @@ def main():
     # 3. Проверим, что SQLite база истории заполнилась правильными статусами
     logger.info("Проверяем содержимое базы данных run_history.db:")
     try:
-        with sqlite3.connect("data/run_history.db") as conn:
+        with sqlite3.connect("../data/run_history.db") as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT job_name, last_run, status, error_message FROM job_states")
             rows = cursor.fetchall()

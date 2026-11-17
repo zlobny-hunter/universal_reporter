@@ -18,7 +18,7 @@ def main():
         "yandex_messenger": {"enabled": False, "chat_id": "123", "caption": "Test"}
     }
 
-    output_dir = "output"
+    output_dir = "../output"
     files = [os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith('.xlsx')]
     if not files:
         logger.error("Пожалуйста, запустите test_step3.py, чтобы в папке 'output' лежал файл.")

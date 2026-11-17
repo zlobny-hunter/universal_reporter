@@ -16,7 +16,7 @@ def main():
 
     # 2. Нам нужен файл для отправки. 
     # Если вы не удаляли результаты шага 3, возьмем файл из папки output/
-    output_dir = "output"
+    output_dir = "../output"
     files = [os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith('.xlsx')]
     
     if not files:
@@ -27,7 +27,7 @@ def main():
     logger.info(f"Используем для теста файл: {test_file_path}")
 
     # 3. Принудительно правим конфиг для теста, чтобы проверить локальное сохранение в текущую папку проекта
-    job_config["delivery"]["local"]["target_path"] = os.path.abspath("final_archive_test")
+    job_config["delivery"]["local"]["target_path"] = os.path.abspath("../final_archive_test")
     job_config["delivery"]["local"]["enabled"] = True
 
     # 4. Вызываем фабрику дистрибуции
