@@ -230,7 +230,7 @@ else:
                 
                 # Логируем начало запуска
                 log_user_run(user_id, user_name, selected_job, job_title, "started",
-                            formatted_params if has_parameters else {})
+                            formatted_params if has_parameters else {}, start_type="local_user")
 
                 # Передаем параметры (или None, если отчет статический)
                 # Если мы попытаемся передать параметры туда, где их нет,
@@ -246,7 +246,7 @@ else:
 
                 # Логируем успешное завершение
                 log_user_run(user_id, user_name, selected_job, job_title, "success",
-                            formatted_params if has_parameters else {})
+                            formatted_params if has_parameters else {}, start_type="local_user")
 
                 st.success(f"🎉 Отчет '{selected_job}' успешно выполнен!")
 
@@ -281,6 +281,6 @@ else:
             except Exception as e:
                 # Логируем ошибку
                 log_user_run(user_id, user_name, selected_job, job_title, "error",
-                            formatted_params if has_parameters else {}, str(e))
+                            formatted_params if has_parameters else {}, str(e), start_type="local_user")
                 # Выводим ошибку валидации или СУБД прямо в красивое красное окно UI
                 st.error(f"❌ Ошибка выполнения конвейера: {e}")

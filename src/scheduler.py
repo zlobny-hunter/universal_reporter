@@ -6,7 +6,8 @@ from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 
 from src.main import run_job, get_all_jobs
-from src.utils.config_loader import load_main_config
+from src.utils.config_loader import load_main_config, load_job_config, get_job_title
+from src.utils.db_logger import log_user_run
 
 logger = logging.getLogger("Core.Scheduler")
 
@@ -45,6 +46,22 @@ def parse_trigger(schedule_str: str):
         logger.error(f"Ошибка парсинга строки расписания '{schedule_str}': {e}")
         return None
 
+def run_scheduled_job(job_name):
+    """Wrapper function for scheduled jobs with logging."""
+    logger.info(f"[SCHEDULER] Запуск запланированной задачи: {job_name}")
+    
+    job_config = load_job_config(job_name, "jobs")
+    job_title = job_config.get("title", job_name) if job_config else job_name
+    
+    try:
+        log_user_run("scheduler", "Scheduler", job_name, job_title, "started", start_type="Scheduler")
+        result = run_job(job_name)
+        log_user_run("scheduler", "Scheduler", job_name, job_title, "success", start_type="Scheduler")
+        logger.info(f"[SCHEDULER] Задача '{job_name}' успешно выполнена")
+    except Exception as e:
+        log_user_run("scheduler", "Scheduler", job_name, job_title, "error", error_message=str(e), start_type="Scheduler")
+        logger.error(f"[SCHEDULER] Ошибка выполнения задачи '{job_name}': {e}", exc_info=True)
+
 def start_scheduler():
     """
     Инициализирует и запускает фоновый планировщик задач.
@@ -82,7 +99,7 @@ def start_scheduler():
                 # Свойство max_instances=1 гарантирует, что если отчет выполняется дольше, 
                 # чем шаг расписания, второй такой же отчет параллельно не запустится.
                 scheduler.add_job(
-                    func=run_job,
+                    func=run_scheduled_job,
                     trigger=trigger,
                     args=[job_name],
                     id=job_name,

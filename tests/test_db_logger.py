@@ -6,7 +6,6 @@ from pathlib import Path
 
 from src.utils.db_logger import (
     init_history_db,
-    log_job_state,
     log_user_run
 )
 
@@ -38,8 +37,12 @@ class TestInitHistoryDb:
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
             tables = [row[0] for row in cursor.fetchall()]
             
-            assert "job_states" in tables
             assert "user_run_history" in tables
+            
+            # Проверяем наличие поля start_type в таблице user_run_history
+            cursor.execute("PRAGMA table_info(user_run_history)")
+            columns = [row[1] for row in cursor.fetchall()]
+            assert "start_type" in columns
             
             conn.close()
         finally:
@@ -60,92 +63,6 @@ class TestInitHistoryDb:
             init_history_db()  # Второй вызов не должен падать
             
             assert os.path.exists(test_db_path)
-        finally:
-            db_logger_module.DB_PATH = original_db_path
-
-
-class TestLogJobState:
-    """Тесты для функции log_job_state."""
-    
-    def test_log_job_state_insert(self, temp_dir):
-        """Проверяет вставку записи о состоянии задачи."""
-        test_db_path = os.path.join(temp_dir, "test_history.db")
-        
-        import src.utils.db_logger as db_logger_module
-        original_db_path = db_logger_module.DB_PATH
-        db_logger_module.DB_PATH = test_db_path
-        
-        try:
-            log_job_state("test_job", "success", "No error")
-            
-            conn = sqlite3.connect(test_db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute("SELECT job_name, status, error_message FROM job_states WHERE job_name = ?", ("test_job",))
-            row = cursor.fetchone()
-            
-            assert row is not None
-            assert row[0] == "test_job"
-            assert row[1] == "success"
-            assert row[2] == "No error"
-            
-            conn.close()
-        finally:
-            db_logger_module.DB_PATH = original_db_path
-    
-    def test_log_job_state_update(self, temp_dir):
-        """Проверяет обновление существующей записи (UPSERT)."""
-        test_db_path = os.path.join(temp_dir, "test_history.db")
-        
-        import src.utils.db_logger as db_logger_module
-        original_db_path = db_logger_module.DB_PATH
-        db_logger_module.DB_PATH = test_db_path
-        
-        try:
-            # Первая вставка
-            log_job_state("test_job", "started", "")
-            
-            # Обновление
-            log_job_state("test_job", "success", "")
-            
-            conn = sqlite3.connect(test_db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute("SELECT COUNT(*) FROM job_states WHERE job_name = ?", ("test_job",))
-            count = cursor.fetchone()[0]
-            
-            assert count == 1  # Должна быть только одна запись
-            
-            cursor.execute("SELECT status FROM job_states WHERE job_name = ?", ("test_job",))
-            status = cursor.fetchone()[0]
-            
-            assert status == "success"  # Статус должен быть обновлен
-            
-            conn.close()
-        finally:
-            db_logger_module.DB_PATH = original_db_path
-    
-    def test_log_job_state_with_error(self, temp_dir):
-        """Проверяет запись с ошибкой."""
-        test_db_path = os.path.join(temp_dir, "test_history.db")
-        
-        import src.utils.db_logger as db_logger_module
-        original_db_path = db_logger_module.DB_PATH
-        db_logger_module.DB_PATH = test_db_path
-        
-        try:
-            error_msg = "Connection timeout"
-            log_job_state("test_job", "error", error_msg)
-            
-            conn = sqlite3.connect(test_db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute("SELECT error_message FROM job_states WHERE job_name = ?", ("test_job",))
-            row = cursor.fetchone()
-            
-            assert row[0] == error_msg
-            
-            conn.close()
         finally:
             db_logger_module.DB_PATH = original_db_path
 
@@ -315,6 +232,37 @@ class TestLogUserRun:
             count = cursor.fetchone()[0]
             
             assert count == 2  # Должны быть две записи
+            
+            conn.close()
+        finally:
+            db_logger_module.DB_PATH = original_db_path
+    
+    def test_log_user_run_with_start_type(self, temp_dir):
+        """Проверяет запись с указанием start_type."""
+        test_db_path = os.path.join(temp_dir, "test_history.db")
+        
+        import src.utils.db_logger as db_logger_module
+        original_db_path = db_logger_module.DB_PATH
+        db_logger_module.DB_PATH = test_db_path
+        
+        try:
+            log_user_run(
+                user_id="12345",
+                user_name="Test User",
+                job_name="test_job",
+                job_title="Test Job",
+                status="success",
+                start_type="robot"
+            )
+            
+            conn = sqlite3.connect(test_db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute("SELECT start_type FROM user_run_history WHERE user_id = ?", ("12345",))
+            row = cursor.fetchone()
+            
+            assert row is not None
+            assert row[0] == "robot"
             
             conn.close()
         finally:

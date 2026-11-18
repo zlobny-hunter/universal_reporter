@@ -576,7 +576,7 @@ def execute_job(chat_id, job_name, user_params, user_id=None, user_name=None):
     
     # Логируем начало запуска отчета
     if user_id and user_name:
-        log_user_run(user_id, user_name, job_name, job_title, "started", user_params)
+        log_user_run(user_id, user_name, job_name, job_title, "started", user_params, start_type="robot")
     
     # Инициализация дефолтных значений
     defined_params = job_config.get("parameters", {}) or {}
@@ -628,7 +628,7 @@ def execute_job(chat_id, job_name, user_params, user_id=None, user_name=None):
             
             # Логируем успешное завершение
             if user_id and user_name:
-                log_user_run(user_id, user_name, job_name, job_title, "success", full_params)
+                log_user_run(user_id, user_name, job_name, job_title, "success", full_params, start_type="robot")
 
             # Читаем свежие настройки дистрибуции из config.yaml отчета
             send_to_chat = True
@@ -702,7 +702,7 @@ def execute_job(chat_id, job_name, user_params, user_id=None, user_name=None):
         print(f"[💥 ОШИБКА ГЕНЕРАЦИИ]: {e}")
         # Логируем ошибку
         if user_id and user_name:
-            log_user_run(user_id, user_name, job_name, job_title, "error", full_params, str(e))
+            log_user_run(user_id, user_name, job_name, job_title, "error", full_params, str(e), start_type="robot")
         requests.post(SEND_TEXT_URL, json={"chat_id": chat_id, "text": f"❌ Ошибка генерации отчета:\n{e}"},
                       headers=HEADERS, verify=False)
 
